@@ -1,0 +1,24 @@
+server:
+  port: 8084
+
+spring:
+  config:
+    import:
+      - optional:file:./config/application-secret.yml
+      - optional:file:../config/application-secret.yml
+
+  elasticsearch:
+    uris: http://${elasticsearch.host}:${elasticsearch.port}
+    username: ${elasticsearch.username}
+    password: ${elasticsearch.password}
+
+  cloud:
+    stream:
+      rocketmq:
+        binder:
+          name-server: ${rocketmq.name-server:127.0.0.1:9876}
+      bindings:
+        contentEvent-in-0:
+          destination: content-event-topic
+          content-type: application/json
+          group: search-consumer-group

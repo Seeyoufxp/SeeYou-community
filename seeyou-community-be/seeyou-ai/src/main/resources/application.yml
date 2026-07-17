@@ -1,0 +1,23 @@
+server:
+  port: 8085
+
+spring:
+  config:
+    import:
+      - optional:file:./config/application-secret.yml
+      - optional:file:../config/application-secret.yml
+
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+      password: ${redis.password}
+
+  ai:
+    openai:
+      api-key: ${ai.api-key}
+      base-url: ${ai.base-url}
+      chat:
+        options:
+          model: gpt-3.5-turbo
+          temperature: 0.7

@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: user-service
+          uri: lb://seeyou-user
+          predicates:
+            - Path=/api/user/**
+        - id: content-service
+          uri: lb://seeyou-content
+          predicates:
+            - Path=/api/post/**,/api/blog/**,/api/qa/**
+        - id: chat-service
+          uri: lb://seeyou-chat
+          predicates:
+            - Path=/api/chat/**
+        - id: search-service
+          uri: lb://seeyou-search
+          predicates:
+            - Path=/api/search/**
+        - id: ai-service
+          uri: lb://seeyou-ai
+          predicates:
+            - Path=/api/ai/**
