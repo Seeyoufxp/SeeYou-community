@@ -34,8 +34,9 @@ mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
   global-config:
     db-config:
-      id-type: auto
-      logic-delete-field: deleted
+      # user_info / chat_message 使用雪花算法手动赋值
+      id-type: input
+      logic-delete-field: isDeleted
       logic-delete-value: 1
       logic-not-delete-value: 0
   configuration:

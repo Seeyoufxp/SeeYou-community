@@ -29,3 +29,26 @@ spring:
           uri: lb://seeyou-ai
           predicates:
             - Path=/api/ai/**
+
+# JWT 配置
+jwt:
+  secret: ${JWT_SECRET:${jwt.secret:}}
+  expire: ${JWT_EXPIRE:${jwt.expire:86400000}}
+
+# 网关鉴权白名单
+gateway:
+  auth:
+    white-list:
+      - /api/user/login
+      - /api/user/register
+      - /api/user/captcha
+      - /api/search/**
+      - /api/post/list
+      - /api/blog/list
+      - /api/qa/list
+      - /api/ai/welcome
+      - /doc.html
+      - /v3/api-docs/**
+      - /swagger-resources/**
+      - /webjars/**
+      - /favicon.ico
