@@ -3,11 +3,13 @@ package com.seeyou.user.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.seeyou.common.constant.CommonConstants;
 import com.seeyou.common.context.UserContext;
 import com.seeyou.common.exception.BusinessException;
 import com.seeyou.common.result.ResultCode;
 import com.seeyou.common.utils.IdWorker;
 import com.seeyou.common.utils.JwtUtils;
+import com.seeyou.common.utils.RedisUtils;
 import com.seeyou.user.pojo.dto.LoginDTO;
 import com.seeyou.user.pojo.dto.RegisterDTO;
 import com.seeyou.user.pojo.dto.UserInfoDTO;
@@ -35,6 +37,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
     private final IUserPointsMapper userPointsMapper;
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
+    private final RedisUtils redisUtils;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -98,9 +101,22 @@ public class UserInfoServiceImpl implements IUserInfoService {
 
         String token = jwtUtils.createToken(user.getId(), user.getUsername(), user.getRole());
 
+        // 写入 Redis，key="token:{userId}"，TTL 24h，支持网关二次校验和主动踢人
+        String redisKey = CommonConstants.TOKEN_REDIS_PREFIX + user.getId();
+        redisUtils.set(redisKey, token, CommonConstants.TOKEN_EXPIRE_MS, java.util.concurrent.TimeUnit.MILLISECONDS);
+
         log.info("用户登录成功: id={}, username={}", user.getId(), user.getUsername());
 
         return new LoginVO(token, user.getId(), user.getUsername(), user.getNickname(), user.getAvatarUrl());
+    }
+
+    @Override
+    public void logout() {
+        Long userId = UserContext.getUserId();
+        if (userId != null) {
+            redisUtils.delete(CommonConstants.TOKEN_REDIS_PREFIX + userId);
+            log.info("用户登出: userId={}", userId);
+        }
     }
 
     @Override

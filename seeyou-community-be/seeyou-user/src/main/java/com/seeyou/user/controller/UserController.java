@@ -41,7 +41,7 @@ public class UserController {
     @Operation(summary = "登出")
     @PostMapping("/logout")
     public R<Void> logout() {
-        
+        userInfoService.logout();
         return R.ok();
     }
 

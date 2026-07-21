@@ -2,6 +2,11 @@ server:
   port: 8080
 
 spring:
+  config:
+    import:
+      - optional:file:./config/application-secret.yml
+      - optional:file:../config/application-secret.yml
+
   cloud:
     gateway:
       discovery:
@@ -29,6 +34,12 @@ spring:
           uri: lb://seeyou-ai
           predicates:
             - Path=/api/ai/**
+
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+      password: ${redis.password}
 
 # JWT 配置
 jwt:

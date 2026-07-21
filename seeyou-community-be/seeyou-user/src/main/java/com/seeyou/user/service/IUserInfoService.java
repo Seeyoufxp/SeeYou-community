@@ -13,6 +13,8 @@ public interface IUserInfoService {
 
     LoginVO login(LoginDTO dto);
 
+    void logout();
+
     UserInfoVO getCurrentUserInfo();
 
     void editUserInfo(UserInfoDTO userInfoDTO);

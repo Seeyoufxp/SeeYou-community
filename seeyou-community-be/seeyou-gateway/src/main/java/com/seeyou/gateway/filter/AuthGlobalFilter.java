@@ -3,6 +3,7 @@ package com.seeyou.gateway.filter;
 import cn.hutool.core.util.StrUtil;
 import com.seeyou.common.constant.CommonConstants;
 import com.seeyou.common.utils.JwtUtils;
+import com.seeyou.common.utils.RedisUtils;
 import com.seeyou.gateway.config.AuthProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 全局鉴权过滤器
@@ -34,6 +36,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
     private final AuthProperties authProperties;
     private final JwtUtils jwtUtils;
+    private final RedisUtils redisUtils;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
@@ -61,6 +64,15 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         Long userId = jwtUtils.getUserId(token);
         String username = jwtUtils.getUsername(token);
         Integer role = jwtUtils.getRole(token);
+
+        // Redis 二次校验：token 是否被登出/踢人/封禁等操作清除
+        String redisKey = CommonConstants.TOKEN_REDIS_PREFIX + userId;
+        String cachedToken = redisUtils.get(redisKey);
+        if (cachedToken == null || !cachedToken.equals(token)) {
+            return unauthorized(exchange, "token 已失效，请重新登录");
+        }
+        // 滑动续期
+        redisUtils.expire(redisKey, CommonConstants.TOKEN_EXPIRE_MS, TimeUnit.MILLISECONDS);
 
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                 .header(CommonConstants.HEADER_USER_ID, String.valueOf(userId))
