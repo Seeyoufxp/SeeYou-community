@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: seeyou-content
+  config:
+    import:
+      - optional:file:./config/application-secret.yml
+      - optional:file:../config/application-secret.yml
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${nacos.server-addr:127.0.0.1:8848}
+        namespace: ${nacos.namespace:public}
+        username: ${nacos.username:}
+        password: ${nacos.password:}
+      config:
+        server-addr: ${nacos.server-addr:127.0.0.1:8848}
+        namespace: ${nacos.namespace:public}
+        username: ${nacos.username:}
+        password: ${nacos.password:}
+        file-extension: yml
+        shared-configs:
+          - data-id: application-common.yml
+            group: DEFAULT_GROUP
+            refresh: true
