@@ -101,7 +101,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
 
         String token = jwtUtils.createToken(user.getId(), user.getUsername(), user.getRole());
 
-        // 写入 Redis，key="token:{userId}"，TTL 24h，支持网关二次校验和主动踢人
+        // 写入 Redis，key="token:{userId}"
         String redisKey = CommonConstants.TOKEN_REDIS_PREFIX + user.getId();
         redisUtils.set(redisKey, token, CommonConstants.TOKEN_EXPIRE_MS, java.util.concurrent.TimeUnit.MILLISECONDS);
 
