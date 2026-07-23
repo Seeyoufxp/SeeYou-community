@@ -19,6 +19,7 @@ import com.seeyou.user.mapper.IUserInfoMapper;
 import com.seeyou.user.mapper.IUserPointsMapper;
 import com.seeyou.user.service.IUserInfoService;
 import com.seeyou.user.pojo.vo.LoginVO;
+import com.seeyou.user.pojo.vo.UserBriefVO;
 import com.seeyou.user.pojo.vo.UserInfoVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -151,5 +155,28 @@ public class UserInfoServiceImpl implements IUserInfoService {
         BeanUtil.copyProperties(userInfoDTO, user);
         user.setUpdateTime(LocalDateTime.now());
         userInfoMapper.updateById(user);
+    }
+
+    @Override
+    public UserBriefVO getBriefById(Long id) {
+        if (id == null) {
+            return null;
+        }
+        UserInfo user = userInfoMapper.selectById(id);
+        if (user == null) {
+            return null;
+        }
+        return new UserBriefVO(user.getId(), user.getNickname(), user.getAvatarUrl());
+    }
+
+    @Override
+    public List<UserBriefVO> listBriefByIds(Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<UserInfo> users = userInfoMapper.selectBatchIds(ids);
+        return users.stream()
+                .map(u -> new UserBriefVO(u.getId(), u.getNickname(), u.getAvatarUrl()))
+                .toList();
     }
 }

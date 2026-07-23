@@ -5,6 +5,7 @@ import com.seeyou.user.pojo.dto.LoginDTO;
 import com.seeyou.user.pojo.dto.RegisterDTO;
 import com.seeyou.user.pojo.dto.UserInfoDTO;
 import com.seeyou.user.pojo.vo.LoginVO;
+import com.seeyou.user.pojo.vo.UserBriefVO;
 import com.seeyou.user.pojo.vo.UserInfoVO;
 import com.seeyou.user.service.IUserInfoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,10 +13,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Collection;
+import java.util.List;
 
 @Tag(name = "用户服务")
 @RestController
@@ -56,5 +61,19 @@ public class UserController {
     public R<Void> edit(@Valid @RequestBody UserInfoDTO userInfoDTO) {
         userInfoService.editUserInfo(userInfoDTO);
         return R.ok();
+    }
+
+    // OpenFeign调用接口
+
+    @Operation(summary = "内部接口：按ID查用户概要")
+    @GetMapping("/inner/{id}")
+    public R<UserBriefVO> innerGetById(@PathVariable Long id) {
+        return R.ok(userInfoService.getBriefById(id));
+    }
+
+    @Operation(summary = "内部接口：批量查用户概要")
+    @PostMapping("/inner/listByIds")
+    public R<List<UserBriefVO>> innerListByIds(@RequestBody Collection<Long> ids) {
+        return R.ok(userInfoService.listBriefByIds(ids));
     }
 }

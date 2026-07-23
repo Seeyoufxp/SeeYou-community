@@ -7,9 +7,11 @@ import com.seeyou.common.context.UserContext;
 import com.seeyou.common.exception.BusinessException;
 import com.seeyou.common.result.ResultCode;
 import com.seeyou.common.utils.RedisUtils;
+import com.seeyou.content.client.UserBriefLoader;
 import com.seeyou.content.mapper.IContentCommentMapper;
 import com.seeyou.content.mapper.IContentPostMapper;
 import com.seeyou.content.pojo.dto.CommentCreateDTO;
+import com.seeyou.content.pojo.dto.UserBriefDTO;
 import com.seeyou.content.pojo.entity.ContentComment;
 import com.seeyou.content.pojo.entity.ContentPost;
 import com.seeyou.content.pojo.enums.ContentType;
@@ -27,6 +29,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -46,6 +49,7 @@ public class ContentCommentServiceImpl implements IContentCommentService {
     private final IContentCommentMapper contentCommentMapper;
     private final IContentPostMapper contentPostMapper;
     private final RedisUtils redisUtils;
+    private final UserBriefLoader userBriefLoader;
 
     private static final String LIKE_SET_PREFIX = "like:comment:";
     private static final String LIKE_LOCK_PREFIX = "lock:like:comment:";
@@ -122,6 +126,10 @@ public class ContentCommentServiceImpl implements IContentCommentService {
             return Collections.emptyList();
         }
 
+        // 批量拉取所有评论者（含楼中楼）的概要信息
+        Set<Long> userIds = all.stream().map(ContentComment::getUserId).collect(Collectors.toSet());
+        Map<Long, UserBriefDTO> userMap = userBriefLoader.loadByIds(userIds);
+
         Map<Long, List<ContentComment>> childrenMap = new HashMap<>();
         List<ContentComment> roots = new ArrayList<>();
         for (ContentComment c : all) {
@@ -134,9 +142,9 @@ public class ContentCommentServiceImpl implements IContentCommentService {
 
         List<CommentVO> result = new ArrayList<>(roots.size());
         for (ContentComment root : roots) {
-            CommentVO vo = toVO(root);
+            CommentVO vo = toVO(root, userMap);
             List<ContentComment> children = childrenMap.getOrDefault(root.getId(), Collections.emptyList());
-            List<CommentVO> childVOs = children.stream().map(this::toVO).collect(Collectors.toList());
+            List<CommentVO> childVOs = children.stream().map(c -> toVO(c, userMap)).collect(Collectors.toList());
             vo.setChildren(childVOs);
             result.add(vo);
         }
@@ -218,10 +226,15 @@ public class ContentCommentServiceImpl implements IContentCommentService {
 
     // tool
 
-    private CommentVO toVO(ContentComment c) {
+    private CommentVO toVO(ContentComment c, Map<Long, UserBriefDTO> userMap) {
         CommentVO vo = new CommentVO();
         BeanUtil.copyProperties(c, vo);
         vo.setLiked(isLikedByCurrent(c.getId()));
+        UserBriefDTO u = userMap.get(c.getUserId());
+        if (u != null) {
+            vo.setNickname(u.getNickname());
+            vo.setAvatarUrl(u.getAvatarUrl());
+        }
         return vo;
     }
 

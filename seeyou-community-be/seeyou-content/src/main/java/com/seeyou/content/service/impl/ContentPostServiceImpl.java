@@ -11,11 +11,13 @@ import com.seeyou.common.exception.BusinessException;
 import com.seeyou.common.result.PageResult;
 import com.seeyou.common.result.ResultCode;
 import com.seeyou.common.utils.RedisUtils;
+import com.seeyou.content.client.UserBriefLoader;
 import com.seeyou.content.mapper.IContentDetailMapper;
 import com.seeyou.content.mapper.IContentPostMapper;
 import com.seeyou.content.pojo.dto.PostPublishDTO;
 import com.seeyou.content.pojo.dto.PostQueryDTO;
 import com.seeyou.content.pojo.dto.PostUpdateDTO;
+import com.seeyou.content.pojo.dto.UserBriefDTO;
 import com.seeyou.content.pojo.entity.ContentDetail;
 import com.seeyou.content.pojo.entity.ContentPost;
 import com.seeyou.content.pojo.enums.ContentType;
@@ -26,7 +28,8 @@ import com.seeyou.content.pojo.vo.PostListVO;
 import com.seeyou.content.service.IContentPostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.stream.function.StreamBridge;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -34,6 +37,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -51,13 +55,16 @@ public class ContentPostServiceImpl implements IContentPostService {
     private final IContentPostMapper contentPostMapper;
     private final IContentDetailMapper contentDetailMapper;
     private final RedisUtils redisUtils;
-    private final StreamBridge streamBridge;
+    private final RocketMQTemplate rocketMQTemplate;
+    private final UserBriefLoader userBriefLoader;
 
     /** Redis 点赞集合 key 前缀，存 userId 字符串集合 */
     private static final String LIKE_SET_PREFIX = "like:post:";
     /** 点赞操作分布式锁前缀 */
     private static final String LIKE_LOCK_PREFIX = "lock:like:post:";
     private static final long LIKE_LOCK_TIMEOUT_MS = 5000L;
+    /** 内容事件 Topic：content 服务生产 → search 服务消费同步 ES */
+    private static final String CONTENT_EVENT_TOPIC = "content-event-topic";
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -152,6 +159,13 @@ public class ContentPostServiceImpl implements IContentPostService {
         ContentDetail detail = contentDetailMapper.selectById(id);
         vo.setContent(detail == null ? "" : detail.getContent());
         vo.setLiked(isLikedByCurrent(id));
+        // 填充作者信息（复用批量加载器，传单元素集合）
+        Map<Long, UserBriefDTO> userMap = userBriefLoader.loadByIds(Set.of(post.getUserId()));
+        UserBriefDTO u = userMap.get(post.getUserId());
+        if (u != null) {
+            vo.setNickname(u.getNickname());
+            vo.setAvatarUrl(u.getAvatarUrl());
+        }
         return vo;
     }
 
@@ -182,10 +196,21 @@ public class ContentPostServiceImpl implements IContentPostService {
         }
 
         IPage<ContentPost> page = contentPostMapper.selectPage(new Page<>(current, size), wrapper);
-        List<PostListVO> records = page.getRecords().stream().map(p -> {
+
+        // 批量拉取作者信息，避免逐条 Feign 调用导致 N+1
+        List<ContentPost> posts = page.getRecords();
+        Set<Long> userIds = posts.stream().map(ContentPost::getUserId).collect(Collectors.toSet());
+        Map<Long, UserBriefDTO> userMap = userBriefLoader.loadByIds(userIds);
+
+        List<PostListVO> records = posts.stream().map(p -> {
             PostListVO vo = new PostListVO();
             BeanUtil.copyProperties(p, vo);
             vo.setLiked(isLikedByCurrent(p.getId()));
+            UserBriefDTO u = userMap.get(p.getUserId());
+            if (u != null) {
+                vo.setNickname(u.getNickname());
+                vo.setAvatarUrl(u.getAvatarUrl());
+            }
             return vo;
         }).collect(Collectors.toList());
         return new PageResult<>(records, page.getTotal(), page.getCurrent(), page.getSize());
@@ -292,7 +317,8 @@ public class ContentPostServiceImpl implements IContentPostService {
     private void sendEvent(Long id, String action) {
         Runnable send = () -> {
             try {
-                streamBridge.send("contentEvent-out-0", ContentEventMsg.of(id, action));
+                rocketMQTemplate.syncSend(CONTENT_EVENT_TOPIC,
+                        MessageBuilder.withPayload(ContentEventMsg.of(id, action)).build());
                 log.info("发送内容事件: id={}, action={}", id, action);
             } catch (Exception e) {
                 log.error("发送内容事件失败(不影响发布结果): id={}, action={}", id, action, e);

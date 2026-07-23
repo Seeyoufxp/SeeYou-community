@@ -28,6 +28,12 @@ public class PostListVO {
     @Schema(description = "作者ID")
     private Long userId;
 
+    @Schema(description = "作者昵称")
+    private String nickname;
+
+    @Schema(description = "作者头像URL")
+    private String avatarUrl;
+
     @Schema(description = "点赞数")
     private Integer likeCount;
 
