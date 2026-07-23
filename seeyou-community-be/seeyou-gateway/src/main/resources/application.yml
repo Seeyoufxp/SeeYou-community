@@ -21,7 +21,7 @@ spring:
         - id: content-service
           uri: lb://seeyou-content
           predicates:
-            - Path=/api/post/**,/api/blog/**,/api/qa/**
+            - Path=/api/post/**,/api/blog/**,/api/qa/**,/api/comment/**
         - id: chat-service
           uri: lb://seeyou-chat
           predicates:

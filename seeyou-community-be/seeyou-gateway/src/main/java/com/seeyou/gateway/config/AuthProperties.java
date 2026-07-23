@@ -25,6 +25,12 @@ public class AuthProperties {
             "/api/post/list",
             "/api/blog/list",
             "/api/qa/list",
+            // 详情对未登录开放（单层通配，不包含 /like /unlike 等子操作）
+            "/api/post/*",
+            "/api/blog/*",
+            "/api/qa/*",
+            // 评论列表对未登录开放
+            "/api/comment/list",
             "/api/ai/welcome",
             "/doc.html",
             "/v3/api-docs/**",
