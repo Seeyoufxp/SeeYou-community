@@ -25,6 +25,12 @@ spring:
       rocketmq:
         binder:
           name-server: ${rocketmq.name-server:127.0.0.1:9876}
+          access-key: ${rocketmq.access-key:}
+          secret-key: ${rocketmq.secret-key:}
+        bindings:
+          contentEvent-out-0:
+            producer:
+              group: content-producer-group
       bindings:
         contentEvent-out-0:
           destination: content-event-topic
@@ -35,7 +41,7 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: auto
-      logic-delete-field: deleted
+      logic-delete-field: isDeleted
       logic-delete-value: 1
       logic-not-delete-value: 0
   configuration:

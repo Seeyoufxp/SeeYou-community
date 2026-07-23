@@ -17,6 +17,8 @@ spring:
       rocketmq:
         binder:
           name-server: ${rocketmq.name-server:127.0.0.1:9876}
+          access-key: ${rocketmq.access-key:}
+          secret-key: ${rocketmq.secret-key:}
       bindings:
         contentEvent-in-0:
           destination: content-event-topic
