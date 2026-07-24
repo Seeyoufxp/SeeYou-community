@@ -8,6 +8,7 @@ import com.seeyou.content.pojo.enums.ContentType;
 import com.seeyou.content.pojo.vo.LikeResultVO;
 import com.seeyou.content.pojo.vo.PostDetailVO;
 import com.seeyou.content.pojo.vo.PostListVO;
+import com.seeyou.content.pojo.vo.PostSearchDocVO;
 
 /**
  * 内容服务（帖子/博客/问答共用）
@@ -15,19 +16,14 @@ import com.seeyou.content.pojo.vo.PostListVO;
  */
 public interface IContentPostService {
 
-    /** 发布内容，返回新生成的内容ID */
     Long publish(ContentType type, PostPublishDTO dto);
 
-    /** 编辑内容 */
     void update(Long id, PostUpdateDTO dto);
 
-    /** 删除内容（逻辑删） */
     void delete(Long id);
 
-    /** 详情 */
     PostDetailVO getDetail(Long id);
 
-    /** 列表 */
     PageResult<PostListVO> list(ContentType type, PostQueryDTO query);
 
     /** 点赞 */
@@ -35,4 +31,10 @@ public interface IContentPostService {
 
     /** 取消点赞 */
     LikeResultVO unlike(Long id);
+
+    /**
+     * 获取搜索索引文档（供 search 服务通过 OpenFeign 拉取写入 ES）
+     * 仅返回已发布(status=1)且未删除的内容；其余返回 null。
+     */
+    PostSearchDocVO getSearchDoc(Long id);
 }

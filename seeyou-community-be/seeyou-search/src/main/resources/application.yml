@@ -13,6 +13,10 @@ spring:
     password: ${elasticsearch.password}
 
   cloud:
+    # Spring Cloud Stream 消费 content-event-topic
+    # binding 名 contentEvent-in-0 对应的函数 Bean 名是 contentEvent
+    function:
+      definition: contentEvent
     stream:
       rocketmq:
         binder:

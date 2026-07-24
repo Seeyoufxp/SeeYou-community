@@ -25,6 +25,7 @@ import com.seeyou.content.pojo.event.ContentEventMsg;
 import com.seeyou.content.pojo.vo.LikeResultVO;
 import com.seeyou.content.pojo.vo.PostDetailVO;
 import com.seeyou.content.pojo.vo.PostListVO;
+import com.seeyou.content.pojo.vo.PostSearchDocVO;
 import com.seeyou.content.service.IContentPostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -260,6 +261,37 @@ public class ContentPostServiceImpl implements IContentPostService {
         }
     }
 
+    @Override
+    public PostSearchDocVO getSearchDoc(Long id) {
+        ContentPost post = contentPostMapper.selectById(id);
+        // 逻辑删后 selectById 直接返回 null；status != 1 视为不可搜索
+        if (post == null || post.getStatus() == null || post.getStatus() != 1) {
+            return null;
+        }
+        PostSearchDocVO vo = new PostSearchDocVO();
+        vo.setId(post.getId());
+        vo.setType(post.getType());
+        vo.setTitle(post.getTitle());
+        vo.setSummary(post.getSummary());
+        ContentDetail detail = contentDetailMapper.selectById(id);
+        // ES text 字段无强制长度限制，但截断保护：避免极端长文撑爆单条文档
+        vo.setContent(stripAndTruncate(detail == null ? "" : detail.getContent(), 8000));
+        vo.setUserId(post.getUserId());
+        vo.setLikeCount(post.getLikeCount());
+        vo.setCommentCount(post.getCommentCount());
+        vo.setStatus(post.getStatus());
+        vo.setCreateTime(post.getCreateTime());
+        vo.setUpdateTime(post.getUpdateTime());
+        // 复用批量加载器，传单元素集合，避免新增专门的 getById Feign 调用
+        Map<Long, UserBriefDTO> userMap = userBriefLoader.loadByIds(Set.of(post.getUserId()));
+        UserBriefDTO u = userMap.get(post.getUserId());
+        if (u != null) {
+            vo.setNickname(u.getNickname());
+            vo.setAvatarUrl(u.getAvatarUrl());
+        }
+        return vo;
+    }
+
     // tools
 
     private Long requireLogin() {
@@ -305,6 +337,13 @@ public class ContentPostServiceImpl implements IContentPostService {
         if (StrUtil.isBlank(content)) return "";
         String plain = content.replaceAll("<[^>]+>", "").replaceAll("\\s+", " ").trim();
         return plain.length() > 200 ? plain.substring(0, 200) : plain;
+    }
+
+    /** 剥离 HTML 标签 + 折叠空白 + 截断到 maxLen 字符，用于 ES 索引的纯文本正文 */
+    private String stripAndTruncate(String content, int maxLen) {
+        if (StrUtil.isBlank(content)) return "";
+        String plain = content.replaceAll("<[^>]+>", "").replaceAll("\\s+", " ").trim();
+        return plain.length() > maxLen ? plain.substring(0, maxLen) : plain;
     }
 
     /**
