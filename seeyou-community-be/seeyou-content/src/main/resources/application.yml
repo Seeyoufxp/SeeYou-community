@@ -20,21 +20,13 @@ spring:
       port: ${redis.port}
       password: ${redis.password}
 
-  cloud:
-    stream:
-      rocketmq:
-        binder:
-          name-server: ${rocketmq.name-server:127.0.0.1:9876}
-          access-key: ${rocketmq.access-key:}
-          secret-key: ${rocketmq.secret-key:}
-        bindings:
-          contentEvent-out-0:
-            producer:
-              group: content-producer-group
-      bindings:
-        contentEvent-out-0:
-          destination: content-event-topic
-          content-type: application/json
+rocketmq:
+  name-server: ${rocketmq.name-server:127.0.0.1:9876}
+  producer:
+    group: content-producer-group
+    topic: content-event-topic
+    access-key: ${rocketmq.access-key:}
+    secret-key: ${rocketmq.secret-key:}
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml

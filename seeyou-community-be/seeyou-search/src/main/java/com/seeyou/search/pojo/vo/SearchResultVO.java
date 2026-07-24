@@ -1,17 +1,20 @@
-package com.seeyou.content.pojo.vo;
+package com.seeyou.search.pojo.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 内容列表项
- * 列表只展示主表字段（标题/摘要/计数），不连详情表
+ * 搜索结果项
+ * title / summary / contentSnippet 含 <em></em> 高亮片段，前端按需渲染。
  */
 @Data
-@Schema(description = "内容列表项")
-public class PostListVO {
+@Schema(description = "搜索结果项")
+public class SearchResultVO implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Schema(description = "内容ID")
     private Long id;
@@ -19,11 +22,14 @@ public class PostListVO {
     @Schema(description = "内容类型 1:社交帖子 2:技术博客 3:问答")
     private Integer type;
 
-    @Schema(description = "标题")
+    @Schema(description = "标题（含高亮片段）")
     private String title;
 
-    @Schema(description = "摘要")
+    @Schema(description = "摘要（含高亮片段）")
     private String summary;
+
+    @Schema(description = "内容片段（含高亮片段，已截断）")
+    private String contentSnippet;
 
     @Schema(description = "作者ID")
     private Long userId;
@@ -42,7 +48,4 @@ public class PostListVO {
 
     @Schema(description = "发布时间")
     private LocalDateTime createTime;
-
-    @Schema(description = "当前用户是否已点赞")
-    private Boolean liked;
 }

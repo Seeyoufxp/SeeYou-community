@@ -24,6 +24,12 @@ public class CommentVO {
     @Schema(description = "评论人ID")
     private Long userId;
 
+    @Schema(description = "评论人昵称")
+    private String nickname;
+
+    @Schema(description = "评论人头像URL")
+    private String avatarUrl;
+
     @Schema(description = "父评论ID，0代表一级评论")
     private Long parentId;
 

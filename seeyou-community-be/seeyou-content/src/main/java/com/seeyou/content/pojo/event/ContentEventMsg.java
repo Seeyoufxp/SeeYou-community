@@ -8,8 +8,7 @@ import java.io.Serializable;
 
 /**
  * 内容事件消息体
- * content 通过 RocketMQ(contentEvent-out-0 → content-event-topic) 通知 search 服务同步 ES。
- * 开发文档约定"仅传id"，这里额外带 action 让 search 区分增/改/删。
+ * content 通过 RocketMQTemplate 发送到 content-event-topic，通知 search 服务同步 ES。
  */
 @Data
 @NoArgsConstructor
