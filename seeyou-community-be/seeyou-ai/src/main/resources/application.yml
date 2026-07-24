@@ -19,5 +19,10 @@ spring:
       base-url: ${ai.base-url}
       chat:
         options:
-          model: gpt-3.5-turbo
+          model: ${ai.chat-model:qwen3.7-plus}
           temperature: 0.7
+
+# 和风天气
+qweather:
+  host: ${qweather.host}
+  api-key: ${qweather.api-key}
