@@ -10,7 +10,7 @@
     </parent>
     <artifactId>seeyou-ai</artifactId>
     <name>SeeYou AI</name>
-    <description>AI微服务 - Spring AI RAG 开发助手</description>
+    <description>AI微服务 - Spring AI RAG 开发助手 + Function Calling 欢迎信息</description>
     <dependencies>
         <dependency>
             <groupId>com.seeyou</groupId>
@@ -36,9 +36,33 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
+        <!-- Spring AI: OpenAI 兼容（阿里云灵积 DashScope），含 ChatModel / EmbeddingModel -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- Spring AI Redis 向量库（RediSearch）：替代 SimpleVectorStore，向量数据持久化到 Redis Stack -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-redis-store-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- OpenFeign: 调用 user/content 内部接口（注册信息、知识中心文档） -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+        <!-- RocketMQ Stream: 消费 content-event-topic 同步向量知识库（独立 group） -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-stream-rocketmq</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
         </dependency>
     </dependencies>
 </project>

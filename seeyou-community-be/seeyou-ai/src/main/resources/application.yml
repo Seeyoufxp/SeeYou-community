@@ -12,12 +12,65 @@ spring:
       host: ${redis.host}
       port: ${redis.port}
       password: ${redis.password}
+      # RedisVectorStore 依赖 JedisConnectionFactory，强制用 Jedis 客户端
+      # （Spring Boot 默认 Lettuce，不配此项不会创建 JedisConnectionFactory，RedisVectorStore 注入失败）
+      client-type: jedis
 
   ai:
     openai:
       api-key: ${ai.api-key}
-      base-url: ${ai.base-url}
+      # 注意：Spring AI OpenAI 客户端会自动在 base-url 后追加 /v1（OpenAI 标准路径），
+      # 所以这里不能含 /v1（否则会拼成 .../v1/v1/embeddings → 404）。
+      base-url: https://llm-skotfe9no89xvyun.cn-beijing.maas.aliyuncs.com/compatible-mode
       chat:
         options:
-          model: gpt-3.5-turbo
+          model: ${ai.chat-model:qwen3.7-plus}
           temperature: 0.7
+      embedding:
+        options:
+          model: ${ai.embedding-model:text-embedding-v4}
+    # Redis 向量库
+    vectorstore:
+      redis:
+        # 启动时自动建索引（FT.CREATE），已存在则跳过
+        initialize-schema: true
+        # 索引名
+        index: seeyou-ai-knowledge
+        # Redis key 前缀
+        prefix: "seeyou:ai:knowledge:"
+  cloud:
+    # Spring Cloud Stream 消费 content-event-topic（与 search 服务不同 group，各自独立消费全量）
+    # binding 名 contentEvent-in-0 对应的函数 Bean 名是 contentEvent
+    function:
+      definition: contentEvent
+    stream:
+      rocketmq:
+        binder:
+          name-server: ${rocketmq.name-server:127.0.0.1:9876}
+          access-key: ${rocketmq.access-key:}
+          secret-key: ${rocketmq.secret-key:}
+      bindings:
+        contentEvent-in-0:
+          destination: content-event-topic
+          content-type: application/json
+          # AI 知识库消费组，与 search-consumer-group 隔离，互不影响
+          group: ai-knowledge-consumer-group
+
+# 和风天气
+qweather:
+  host: ${qweather.host}
+  api-key: ${qweather.api-key}
+
+# AI 知识库 RAG 配置
+seeyou:
+  ai:
+    knowledge:
+      # 向量检索 Top-K
+      top-k: 4
+      # 相似度阈值（0~1，越大越严格）
+      similarity-threshold: 0.5
+      # 启动时是否异步全量加载知识库（content 服务不可用则跳过，不阻断启动）
+      # 切换到 Redis 持久化后，首次启动需灌一次数据；之后 Redis 已有数据，可改为 false 节省 embedding API 成本
+      auto-init: true
+      # 全量加载每页条数
+      init-page-size: 50

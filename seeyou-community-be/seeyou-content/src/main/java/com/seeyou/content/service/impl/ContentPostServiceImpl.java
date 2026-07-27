@@ -26,6 +26,7 @@ import com.seeyou.content.pojo.vo.LikeResultVO;
 import com.seeyou.content.pojo.vo.PostDetailVO;
 import com.seeyou.content.pojo.vo.PostListVO;
 import com.seeyou.content.pojo.vo.PostSearchDocVO;
+import com.seeyou.content.pojo.vo.KnowledgeDocVO;
 import com.seeyou.content.service.IContentPostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -290,6 +292,43 @@ public class ContentPostServiceImpl implements IContentPostService {
             vo.setAvatarUrl(u.getAvatarUrl());
         }
         return vo;
+    }
+
+    @Override
+    public PageResult<KnowledgeDocVO> listKnowledge(int current, int size) {
+        int cur = current < 1 ? 1 : current;
+        int sz = size < 1 ? 20 : Math.min(size, 100);
+
+        // 知识中心 = 技术博客(2) + 问答(3)，仅已发布
+        LambdaQueryWrapper<ContentPost> wrapper = Wrappers.<ContentPost>lambdaQuery()
+                .in(ContentPost::getType, ContentType.BLOG.getCode(), ContentType.QA.getCode())
+                .eq(ContentPost::getStatus, 1)
+                .orderByDesc(ContentPost::getCreateTime);
+
+        IPage<ContentPost> page = contentPostMapper.selectPage(new Page<>(cur, sz), wrapper);
+        List<ContentPost> posts = page.getRecords();
+        if (posts.isEmpty()) {
+            return new PageResult<>(Collections.emptyList(), page.getTotal(), page.getCurrent(), page.getSize());
+        }
+
+        // 批量取正文，避免 N+1（content_detail 主键即 post_id）
+        Set<Long> postIds = posts.stream().map(ContentPost::getId).collect(Collectors.toSet());
+        Map<Long, String> contentMap = contentDetailMapper.selectBatchIds(postIds).stream()
+                .collect(Collectors.toMap(ContentDetail::getPostId, ContentDetail::getContent, (a, b) -> a));
+
+        List<KnowledgeDocVO> records = posts.stream().map(p -> {
+            KnowledgeDocVO vo = new KnowledgeDocVO();
+            vo.setId(p.getId());
+            vo.setType(p.getType());
+            vo.setTitle(p.getTitle());
+            vo.setSummary(p.getSummary());
+            // 向量库正文截断到 4000 字，控制 embedding 成本
+            vo.setContent(stripAndTruncate(contentMap.getOrDefault(p.getId(), ""), 4000));
+            vo.setCreateTime(p.getCreateTime());
+            return vo;
+        }).collect(Collectors.toList());
+
+        return new PageResult<>(records, page.getTotal(), page.getCurrent(), page.getSize());
     }
 
     // tools
