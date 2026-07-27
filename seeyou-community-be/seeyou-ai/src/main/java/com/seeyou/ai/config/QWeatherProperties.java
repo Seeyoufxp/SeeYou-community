@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "qweather")
 public class QWeatherProperties {
 
-    /** API Host，如 https://ke59febv53.re.qweatherapi.com */
+    /** API Host */
     private String host;
 
     /** API Key */
