@@ -19,6 +19,7 @@ import com.seeyou.user.mapper.IUserInfoMapper;
 import com.seeyou.user.mapper.IUserPointsMapper;
 import com.seeyou.user.service.IUserInfoService;
 import com.seeyou.user.pojo.vo.LoginVO;
+import com.seeyou.user.pojo.vo.RegisterInfoVO;
 import com.seeyou.user.pojo.vo.UserBriefVO;
 import com.seeyou.user.pojo.vo.UserInfoVO;
 import lombok.RequiredArgsConstructor;
@@ -178,5 +179,23 @@ public class UserInfoServiceImpl implements IUserInfoService {
         return users.stream()
                 .map(u -> new UserBriefVO(u.getId(), u.getNickname(), u.getAvatarUrl()))
                 .toList();
+    }
+
+    @Override
+    public RegisterInfoVO getRegisterInfo(Long id) {
+        if (id == null) {
+            return null;
+        }
+        UserInfo user = userInfoMapper.selectById(id);
+        if (user == null) {
+            return null;
+        }
+        RegisterInfoVO vo = new RegisterInfoVO();
+        vo.setId(user.getId());
+        vo.setNickname(user.getNickname());
+        // city 可能为空，AI 侧用默认城市兜底
+        vo.setCity(user.getCity());
+        vo.setCreateTime(user.getCreateTime());
+        return vo;
     }
 }

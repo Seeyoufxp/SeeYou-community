@@ -5,6 +5,7 @@ import com.seeyou.content.pojo.dto.PostPublishDTO;
 import com.seeyou.content.pojo.dto.PostQueryDTO;
 import com.seeyou.content.pojo.dto.PostUpdateDTO;
 import com.seeyou.content.pojo.enums.ContentType;
+import com.seeyou.content.pojo.vo.KnowledgeDocVO;
 import com.seeyou.content.pojo.vo.LikeResultVO;
 import com.seeyou.content.pojo.vo.PostDetailVO;
 import com.seeyou.content.pojo.vo.PostListVO;
@@ -37,4 +38,11 @@ public interface IContentPostService {
      * 仅返回已发布(status=1)且未删除的内容；其余返回 null。
      */
     PostSearchDocVO getSearchDoc(Long id);
+
+    /**
+     * 分页查询知识中心文档（博客+问答，已发布）
+     * 供 AI 服务通过 OpenFeign 拉取构建 RAG 向量知识库。
+     * 正文已剥离 HTML 标签并截断，避免向量库膨胀。
+     */
+    PageResult<KnowledgeDocVO> listKnowledge(int current, int size);
 }

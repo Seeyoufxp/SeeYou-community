@@ -4,6 +4,7 @@ import com.seeyou.user.pojo.dto.LoginDTO;
 import com.seeyou.user.pojo.dto.RegisterDTO;
 import com.seeyou.user.pojo.dto.UserInfoDTO;
 import com.seeyou.user.pojo.vo.LoginVO;
+import com.seeyou.user.pojo.vo.RegisterInfoVO;
 import com.seeyou.user.pojo.vo.UserBriefVO;
 import com.seeyou.user.pojo.vo.UserInfoVO;
 import jakarta.validation.Valid;
@@ -32,5 +33,11 @@ public interface IUserInfoService {
      * 批量查询用户概要（供内部 Feign 调用，仅返回存在的用户）
      */
     List<UserBriefVO> listBriefByIds(Collection<Long> ids);
+
+    /**
+     * 按 ID 查询用户注册信息（供 AI 服务 Feign 调用，计算注册时长/取城市）
+     * 用户不存在返回 null
+     */
+    RegisterInfoVO getRegisterInfo(Long id);
 
 }

@@ -5,6 +5,7 @@ import com.seeyou.user.pojo.dto.LoginDTO;
 import com.seeyou.user.pojo.dto.RegisterDTO;
 import com.seeyou.user.pojo.dto.UserInfoDTO;
 import com.seeyou.user.pojo.vo.LoginVO;
+import com.seeyou.user.pojo.vo.RegisterInfoVO;
 import com.seeyou.user.pojo.vo.UserBriefVO;
 import com.seeyou.user.pojo.vo.UserInfoVO;
 import com.seeyou.user.service.IUserInfoService;
@@ -75,5 +76,11 @@ public class UserController {
     @PostMapping("/inner/listByIds")
     public R<List<UserBriefVO>> innerListByIds(@RequestBody Collection<Long> ids) {
         return R.ok(userInfoService.listBriefByIds(ids));
+    }
+
+    @Operation(summary = "内部接口：查用户注册信息（供AI服务计算注册时长/取城市）")
+    @GetMapping("/inner/{id}/register-info")
+    public R<RegisterInfoVO> innerGetRegisterInfo(@PathVariable Long id) {
+        return R.ok(userInfoService.getRegisterInfo(id));
     }
 }
