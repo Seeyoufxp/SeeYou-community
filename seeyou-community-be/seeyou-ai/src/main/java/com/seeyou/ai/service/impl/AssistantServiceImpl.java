@@ -32,10 +32,10 @@ public class AssistantServiceImpl implements AssistantService {
     private final KnowledgeProperties properties;
 
     private static final String SYSTEM_PROMPT =
-            "你是之友(SeeYou)开发者社区的 AI 开发助手。请优先基于「知识库内容」回答用户的技术问题，" +
-            "回答要准确、简洁、有条理。若知识库内容与问题相关，请引用其要点；" +
-            "若知识库内容明显不足以回答，可基于自身知识回答，但需在开头说明\"知识库未覆盖此问题，以下为通用回答：\"。" +
-            "禁止编造不存在的库或 API。";
+            "你是之友(SeeYou)开发者社区的 AI 开发助手。回答要准确、简洁、有条理，专注技术问题。" +
+            "优先基于「知识库内容」回答；如果知识库里有相关信息，直接把要点写进答案里，**不要在答案前后加「根据知识库内容」「基于以上资料」之类的套话**。" +
+            "如果知识库内容与问题无关或为空，就基于你自己的知识回答；也不要加「知识库未覆盖此问题」「以下为通用回答」之类的免责声明，直接给答案即可。" +
+            "禁止编造不存在的库、API、文章或用户。无法确认的事老实说不知道。";
 
     @Override
     public AssistantAnswerVO ask(String question) {
@@ -97,7 +97,7 @@ public class AssistantServiceImpl implements AssistantService {
 
     private String buildContext(List<Document> docs) {
         if (docs == null || docs.isEmpty()) {
-            return "（知识库无相关内容）";
+            return "（无）";
         }
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < docs.size(); i++) {
@@ -112,7 +112,8 @@ public class AssistantServiceImpl implements AssistantService {
     }
 
     private String buildUserPrompt(String question, String context) {
-        return "知识库内容：\n" + context + "\n\n用户问题：" + question;
+        // 提示词里不出现"知识库内容"等字样，避免模型在回答里也复读这种前缀
+        return "参考资料：\n" + context + "\n\n问题：" + question;
     }
 
     private Long parseLong(Object o) {

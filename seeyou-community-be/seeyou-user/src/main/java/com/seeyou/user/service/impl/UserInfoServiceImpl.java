@@ -154,6 +154,11 @@ public class UserInfoServiceImpl implements IUserInfoService {
         }
 
         BeanUtil.copyProperties(userInfoDTO, user);
+        // DTO 字段是蛇形（avatar_url / blog_url / company_or_school），实体是驼峰，
+        // Hutool BeanUtil 不做命名风格转换，要手动 set，否则头像/博客/公司字段保存不进去
+        user.setAvatarUrl(userInfoDTO.getAvatar_url());
+        user.setBlogUrl(userInfoDTO.getBlog_url());
+        user.setCompanyOrSchool(userInfoDTO.getCompany_or_school());
         user.setUpdateTime(LocalDateTime.now());
         userInfoMapper.updateById(user);
     }

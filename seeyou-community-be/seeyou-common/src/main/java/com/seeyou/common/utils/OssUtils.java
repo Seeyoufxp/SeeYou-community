@@ -2,6 +2,7 @@ package com.seeyou.common.utils;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
+import com.aliyun.oss.model.CannedAccessControlList;
 import com.aliyun.oss.model.ObjectMetadata;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
@@ -38,10 +39,17 @@ public class OssUtils {
         return ossClient;
     }
 
+    /**
+     * 上传文件并设为公共读，返回公网 URL。
+     * 头像等需要前端直接展示的对象必须公共读，否则公网 URL 返回 403 图片加载失败。
+     * 不要用签名 URL：会过期，刷新后图片就 403 了。
+     */
     public String upload(InputStream inputStream, String objectKey, String contentType) {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType(contentType);
         getClient().putObject(bucketName, objectKey, inputStream, metadata);
+        // 单独设 ACL 为公共读（putObject API 没法一次性带 ACL）
+        getClient().setObjectAcl(bucketName, objectKey, CannedAccessControlList.PublicRead);
         return "https://" + bucketName + "." + endpoint + "/" + objectKey;
     }
 
