@@ -20,6 +20,12 @@ spring:
       port: ${redis.port}
       password: ${redis.password}
 
+  # 头像上传：multipart 限制（OSS 走的是后端转发模式，单文件不超过 5MB）
+  servlet:
+    multipart:
+      max-file-size: 6MB
+      max-request-size: 6MB
+
   cloud:
     stream:
       rocketmq:

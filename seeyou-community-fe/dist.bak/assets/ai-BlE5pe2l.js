@@ -1,0 +1,1 @@
+import{r as s}from"./_plugin-vue_export-helper-2Oq3uZ77.js";const a=()=>s.get("/api/ai/welcome"),o=e=>s.post("/api/ai/assistant",{question:e},{timeout:9e4}),i=()=>s.post("/api/ai/knowledge/rebuild");export{o as a,a as g,i as r};

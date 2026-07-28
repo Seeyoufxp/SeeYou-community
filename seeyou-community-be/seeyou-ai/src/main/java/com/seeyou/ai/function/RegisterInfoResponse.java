@@ -23,6 +23,6 @@ public class RegisterInfoResponse implements Serializable {
     private String nickname;
     /** 注册天数 */
     private Integer registerDays;
-    /** 所在城市（可能为空） */
+    /** 所在地区（"省份,城市" 组合），可能为空。空时 LLM 不要提及天气 */
     private String city;
 }

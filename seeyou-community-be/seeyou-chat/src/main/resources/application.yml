@@ -21,25 +21,34 @@ spring:
       password: ${redis.password}
 
   cloud:
+    function:
+      definition: chatMessage
     stream:
       rocketmq:
         binder:
           name-server: ${rocketmq.name-server:127.0.0.1:9876}
           access-key: ${rocketmq.access-key:}
           secret-key: ${rocketmq.secret-key:}
+        bindings:
+          chatMessage-in-0:
+            consumer:
+              # 广播模式：每个 chat 实例都消费全量消息，用于多实例 WebSocket 推送
+              messageModel: BROADCASTING
       bindings:
         chatMessage-out-0:
           destination: chat-message-topic
           content-type: application/json
+        chatMessage-in-0:
+          destination: chat-message-topic
+          content-type: application/json
+          group: chat-message-consumer-group
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
   global-config:
     db-config:
-      id-type: auto
-      logic-delete-field: deleted
-      logic-delete-value: 1
-      logic-not-delete-value: 0
+      # chat_message 用雪花算法手动赋值(IdWorker.nextId)；chat_room 用 AUTO 自增
+      id-type: input
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

@@ -55,6 +55,11 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
+        <!-- OkHttp: 自定义 OkHttpClient bean 增加灵积 LLM 调用 timeout（默认 10s，qwen3.7-plus+function calling 常超时） -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+        </dependency>
         <!-- RocketMQ Stream: 消费 content-event-topic 同步向量知识库（独立 group） -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>

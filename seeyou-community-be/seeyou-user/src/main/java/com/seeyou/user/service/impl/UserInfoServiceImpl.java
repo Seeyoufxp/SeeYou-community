@@ -64,7 +64,8 @@ public class UserInfoServiceImpl implements IUserInfoService {
         user.setEmail("");
         user.setPhone("");
         user.setRole(0);
-        user.setCity("");
+        // 地区选填：未传时存 null（不要存 ""，下游按 null 走"无地区"分支）
+        user.setCity(dto.getCity());
         user.setBio("");
         user.setBlogUrl("");
         user.setCompanyOrSchool("");
@@ -154,6 +155,12 @@ public class UserInfoServiceImpl implements IUserInfoService {
         }
 
         BeanUtil.copyProperties(userInfoDTO, user);
+        // DTO 字段是蛇形（avatar_url / blog_url / company_or_school），实体是驼峰，
+        // Hutool BeanUtil 不做命名风格转换，要手动 set，否则头像/博客/公司字段保存不进去。
+        // city 字段两边名字一致，会自动复制，不用手动 set。
+        user.setAvatarUrl(userInfoDTO.getAvatar_url());
+        user.setBlogUrl(userInfoDTO.getBlog_url());
+        user.setCompanyOrSchool(userInfoDTO.getCompany_or_school());
         user.setUpdateTime(LocalDateTime.now());
         userInfoMapper.updateById(user);
     }
@@ -193,7 +200,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
         RegisterInfoVO vo = new RegisterInfoVO();
         vo.setId(user.getId());
         vo.setNickname(user.getNickname());
-        // city 可能为空，AI 侧用默认城市兜底
+        // city 可能为空（"省份,城市" 组合或 null），AI 侧按 null 走"无地区"分支（不调用天气）
         vo.setCity(user.getCity());
         vo.setCreateTime(user.getCreateTime());
         return vo;

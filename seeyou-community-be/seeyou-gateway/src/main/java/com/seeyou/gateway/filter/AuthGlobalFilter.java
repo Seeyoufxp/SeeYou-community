@@ -25,9 +25,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 全局鉴权过滤器
- * 1. 白名单请求直接放行
- * 2. 非白名单请求解析 Authorization header，校验 JWT
- * 3. 校验通过后将 userId/username/role 写入下游请求头
+ * 1. 白名单请求不强制登录；但如果带了有效 token，也解析并透传用户信息（让登录用户享受个性化，如欢迎语）
+ * 2. 非白名单请求强制校验 JWT，校验通过后将 userId/username/role 写入下游请求头
+ * 3. token 解析/Redis 校验失败时：白名单按未登录放行，非白名单返回 401
  */
 @Slf4j
 @Component
@@ -44,9 +44,16 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         String path = exchange.getRequest().getURI().getPath();
 
         if (isWhiteListed(path)) {
+            // 白名单不强制登录；但如果带了有效 token，解析并透传用户信息
+            // 让"渐进式鉴权"接口（如欢迎语：未登录返回固定语、登录返回个性化）能识别登录用户
+            ServerHttpRequest enriched = tryEnrichWithUserInfo(exchange);
+            if (enriched != null) {
+                return chain.filter(exchange.mutate().request(enriched).build());
+            }
             return chain.filter(exchange);
         }
 
+        // 非白名单：强制登录
         String token = exchange.getRequest().getHeaders().getFirst(CommonConstants.HEADER_TOKEN);
         if (StrUtil.isBlank(token)) {
             return unauthorized(exchange, "未登录");
@@ -81,6 +88,40 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
                 .build();
 
         return chain.filter(exchange.mutate().request(mutatedRequest).build());
+    }
+
+    /**
+     * 尝试解析 token 并返回带用户信息 header 的 mutated request
+     * 用于白名单路径：有有效 token 就透传 X-User-Id 等，没有或无效就返回 null（按未登录处理）
+     * @return 带 X-User-Id 等 header 的 request；token 缺失/无效/Redis 校验失败返回 null
+     */
+    private ServerHttpRequest tryEnrichWithUserInfo(ServerWebExchange exchange) {
+        String token = exchange.getRequest().getHeaders().getFirst(CommonConstants.HEADER_TOKEN);
+        if (StrUtil.isBlank(token)) {
+            return null;
+        }
+        if (token.startsWith(CommonConstants.TOKEN_PREFIX)) {
+            token = token.substring(CommonConstants.TOKEN_PREFIX.length());
+        }
+        if (!jwtUtils.validate(token)) {
+            return null;
+        }
+        Long userId = jwtUtils.getUserId(token);
+        String username = jwtUtils.getUsername(token);
+        Integer role = jwtUtils.getRole(token);
+        // Redis 二次校验（与强制登录路径一致，避免白名单接口被已失效 token 滥用）
+        String redisKey = CommonConstants.TOKEN_REDIS_PREFIX + userId;
+        String cachedToken = redisUtils.get(redisKey);
+        if (cachedToken == null || !cachedToken.equals(token)) {
+            return null;
+        }
+        // 滑动续期（白名单也是活跃使用，续期合理）
+        redisUtils.expire(redisKey, CommonConstants.TOKEN_EXPIRE_MS, TimeUnit.MILLISECONDS);
+        return exchange.getRequest().mutate()
+                .header(CommonConstants.HEADER_USER_ID, String.valueOf(userId))
+                .header(CommonConstants.HEADER_USERNAME, username == null ? "" : username)
+                .header(CommonConstants.HEADER_USER_ROLE, role == null ? "0" : String.valueOf(role))
+                .build();
     }
 
     private boolean isWhiteListed(String path) {

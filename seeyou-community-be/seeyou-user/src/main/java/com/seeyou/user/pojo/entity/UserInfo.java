@@ -34,6 +34,10 @@ public class UserInfo implements Serializable {
 
     private Integer role;
 
+    /**
+     * 所在地区，格式"省份,城市"（如"北京市,北京""广东省,广州"），未设置时为 null。
+     * 和风天气 location 参数支持该组合格式。
+     */
     private String city;
 
     private String bio;
