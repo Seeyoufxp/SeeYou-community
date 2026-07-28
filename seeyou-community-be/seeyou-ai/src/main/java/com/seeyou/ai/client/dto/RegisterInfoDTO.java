@@ -17,7 +17,10 @@ public class RegisterInfoDTO implements Serializable {
 
     private Long id;
     private String nickname;
-    /** 所在城市，可能为空（AI 侧用默认城市兜底） */
+    /**
+     * 所在地区，格式"省份,城市"（如"北京市,北京""广东省,广州"），可能为空。
+     * 和风天气 location 参数支持该组合格式。空时 AI 侧不调用天气，按"无地区"生成欢迎语。
+     */
     private String city;
     private LocalDateTime createTime;
 }

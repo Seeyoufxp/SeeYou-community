@@ -1,13 +1,5 @@
 <template>
   <div class="home">
-    <!-- 顶部横幅 -->
-    <div class="banner-strip">
-      <div class="sy-container strip-inner">
-        <span class="strip-text">之友 SeeYou 开发者社区 · 分享技术，结交朋友</span>
-        <span class="strip-tag">GO</span>
-      </div>
-    </div>
-
     <!-- 欢迎区 + AI 助手 -->
     <section class="hero">
       <div class="sy-container">
@@ -275,31 +267,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.banner-strip {
-  background: linear-gradient(90deg, #d40000, #ff6a3d);
-  color: #fff;
-}
-.strip-inner {
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-.strip-text {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 1px;
-}
-.strip-tag {
-  background: #fff;
-  color: var(--sy-primary);
-  font-size: 12px;
-  font-weight: 700;
-  border-radius: 10px;
-  padding: 1px 8px;
-}
-
 .hero {
   background: linear-gradient(135deg, #f6f7ff 0%, #fff 45%, #eef4ff 100%);
   padding: 40px 0 24px;

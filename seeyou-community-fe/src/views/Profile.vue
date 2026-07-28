@@ -78,7 +78,16 @@
         </el-form-item>
         <el-form-item label="邮箱"><el-input v-model="editForm.email" /></el-form-item>
         <el-form-item label="手机号"><el-input v-model="editForm.phone" /></el-form-item>
-        <el-form-item label="城市"><el-input v-model="editForm.city" /></el-form-item>
+        <el-form-item label="地区">
+          <el-cascader
+            v-model="editForm.region"
+            :options="REGIONS"
+            placeholder="所在地区"
+            :props="{ checkStrictly: false }"
+            clearable
+            style="width: 100%"
+          />
+        </el-form-item>
         <el-form-item label="个人简介"><el-input v-model="editForm.bio" type="textarea" :rows="2" maxlength="255" /></el-form-item>
         <el-form-item label="博客地址"><el-input v-model="editForm.blog_url" /></el-form-item>
         <el-form-item label="公司/学校"><el-input v-model="editForm.company_or_school" /></el-form-item>
@@ -99,6 +108,7 @@ import { Plus } from '@element-plus/icons-vue'
 import { getUserInfo, editUserInfo, uploadImage } from '@/api/user'
 import { getContentList } from '@/api/content'
 import { formatDateTime, fromNow, registerDays, defaultAvatar } from '@/utils/format'
+import { REGIONS } from '@/data/regions'
 import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
@@ -116,12 +126,18 @@ const editVisible = ref(false)
 const saving = ref(false)
 const editForm = reactive({})
 function openEdit() {
+  // 后端 city 存"省份,城市"字符串，编辑时拆成 el-cascader 需要的 [province, city] 数组
+  const cityStr = info.value.city
+  const region =
+    cityStr && cityStr.includes(',')
+      ? cityStr.split(',', 2)
+      : undefined
   Object.assign(editForm, {
     nickname: info.value.nickname,
     avatar_url: info.value.avatarUrl,
     email: info.value.email,
     phone: info.value.phone,
-    city: info.value.city,
+    region,
     bio: info.value.bio,
     blog_url: info.value.blogUrl,
     company_or_school: info.value.companyOrSchool
@@ -131,11 +147,22 @@ function openEdit() {
 async function saveEdit() {
   saving.value = true
   try {
-    // 只提交有值的字段
-    const payload = {}
-    for (const [k, v] of Object.entries(editForm)) {
-      if (v !== undefined && v !== null) payload[k] = v
+    // el-cascader 数组拼回"省份,城市"字符串提交
+    const [province, city] = editForm.region || []
+    const cityStr = province && city ? `${province},${city}` : ''
+    const payload = {
+      nickname: editForm.nickname,
+      avatar_url: editForm.avatar_url,
+      email: editForm.email,
+      phone: editForm.phone,
+      // 后端 DTO 字段就是 city（蛇形映射），存"省份,城市"组合
+      city: cityStr || undefined,
+      bio: editForm.bio,
+      blog_url: editForm.blog_url,
+      company_or_school: editForm.company_or_school
     }
+    // 去掉 undefined 字段，避免后端 BeanUtil 复制时被设为 null
+    Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k])
     await editUserInfo(payload)
     ElMessage.success('保存成功')
     editVisible.value = false

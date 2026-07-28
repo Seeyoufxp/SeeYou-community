@@ -1,11 +1,13 @@
 package com.seeyou.ai.function;
 
+import cn.hutool.core.util.StrUtil;
 import com.seeyou.ai.client.UserClient;
 import com.seeyou.ai.client.dto.RegisterInfoDTO;
 import com.seeyou.ai.pojo.dto.WeatherInfo;
 import com.seeyou.ai.service.QWeatherService;
 import com.seeyou.common.context.UserContext;
 import com.seeyou.common.result.R;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Description;
@@ -25,6 +27,7 @@ import java.util.function.Function;
  *
  * 任意远程调用失败均降级返回 null，LLM 会基于已有信息生成欢迎语，不阻断主流程。
  */
+@Slf4j
 @Configuration
 public class FunctionConfig {
 
@@ -53,7 +56,8 @@ public class FunctionConfig {
     }
 
     @Bean
-    @Description("获取当前登录用户所在城市的实时天气，包括温度、天气现象、风向、湿度。无需传参。")
+    @Description("获取当前登录用户所在城市的实时天气，包括温度、天气现象、风向、湿度。无需传参。"
+            + "若用户未设置所在城市（city 为空），返回 null，LLM 不要调用此函数或自行猜测天气。")
     public Function<FunctionEmptyRequest, WeatherResponse> getCurrentWeather(
             UserClient userClient, QWeatherService qWeatherService) {
         return req -> {
@@ -62,10 +66,15 @@ public class FunctionConfig {
                 return null;
             }
             try {
-                String city = null;
                 R<RegisterInfoDTO> resp = userClient.getRegisterInfo(userId);
-                if (resp != null && resp.getData() != null) {
-                    city = resp.getData().getCity();
+                if (resp == null || resp.getData() == null) {
+                    return null;
+                }
+                String city = resp.getData().getCity();
+                // 用户没设置地区时直接返回 null，不调用和风天气、不 fallback 北京
+                if (StrUtil.isBlank(city)) {
+                    log.debug("用户未设置地区，跳过天气查询: userId={}", userId);
+                    return null;
                 }
                 WeatherInfo weather = qWeatherService.getCurrentWeather(city);
                 if (weather == null) {

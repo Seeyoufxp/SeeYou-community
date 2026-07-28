@@ -55,12 +55,20 @@ public class QWeatherServiceImpl implements QWeatherService {
 
     @Override
     public WeatherInfo getCurrentWeather(String cityName) {
+        // 城市名为空时直接返回 null（用户没设地区时不要 fallback 北京）
+        if (cityName == null || cityName.isBlank()) {
+            log.debug("城市名为空，跳过天气查询");
+            return null;
+        }
         try {
             String locationId = resolveLocationId(cityName);
-            String actualCity = cityName != null && !cityName.isBlank() ? cityName : DEFAULT_CITY_NAME;
+            if (locationId == null) {
+                log.warn("解析 locationId 失败: city={}", cityName);
+                return null;
+            }
             JsonNode hourly = getHourly(locationId);
             if (hourly == null || !hourly.isArray() || hourly.isEmpty()) {
-                log.warn("获取24h天气失败或为空: city={}", actualCity);
+                log.warn("获取24h天气失败或为空: city={}", cityName);
                 return null;
             }
             // 当前小时对应的预报；24h 通常从下一个整点开始，找不到当前小时时取第一条（即将到来的一小时）
@@ -71,7 +79,7 @@ public class QWeatherServiceImpl implements QWeatherService {
             // 聚合当天最高/最低温
             String[] maxMin = aggregateTodayMaxMin(hourly);
             return new WeatherInfo(
-                    actualCity,
+                    cityName,
                     target.path("temp").asText(),
                     maxMin[0],
                     maxMin[1],

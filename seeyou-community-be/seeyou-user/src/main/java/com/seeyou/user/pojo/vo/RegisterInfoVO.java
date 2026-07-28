@@ -23,7 +23,7 @@ public class RegisterInfoVO implements Serializable {
     @Schema(description = "昵称")
     private String nickname;
 
-    @Schema(description = "所在城市（用于天气查询，可能为空）")
+    @Schema(description = "所在地区，格式\"省份,城市\"（如\"北京市,北京\"），可能为空")
     private String city;
 
     @Schema(description = "注册时间")

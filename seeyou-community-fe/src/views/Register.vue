@@ -14,9 +14,19 @@
           </el-input>
         </el-form-item>
         <el-form-item prop="nickname">
-          <el-input v-model="form.nickname" placeholder="昵称（可选，默认同用户名）">
+          <el-input v-model="form.nickname" placeholder="昵称（选填）">
             <template #prefix><el-icon><Avatar /></el-icon></template>
           </el-input>
+        </el-form-item>
+        <el-form-item prop="region">
+          <el-cascader
+            v-model="form.region"
+            :options="REGIONS"
+            placeholder="所在地区（选填）"
+            :props="{ checkStrictly: false }"
+            clearable
+            style="width: 100%"
+          />
         </el-form-item>
         <el-form-item prop="password">
           <el-input v-model="form.password" type="password" placeholder="密码（6-50 位）" show-password>
@@ -46,11 +56,19 @@ import 'element-plus/es/components/message/style/css'
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { register } from '@/api/user'
+import { REGIONS } from '@/data/regions'
 
 const router = useRouter()
 const formRef = ref()
 const loading = ref(false)
-const form = reactive({ username: '', nickname: '', password: '', confirm: '' })
+const form = reactive({
+  username: '',
+  nickname: '',
+  password: '',
+  confirm: '',
+  // 省-市两级，例：['北京市', '北京']；不选则 undefined
+  region: undefined
+})
 
 const rules = {
   username: [
@@ -74,10 +92,15 @@ async function submit() {
   await formRef.value.validate()
   loading.value = true
   try {
+    // el-cascader 选出的是 [province, city] 数组，拼成"省份,城市"字符串存到 city 字段
+    // 和风天气 location 参数支持该组合格式
+    const [province, city] = form.region || []
+    const cityStr = province && city ? `${province},${city}` : undefined
     await register({
       username: form.username,
       password: form.password,
-      nickname: form.nickname || undefined
+      nickname: form.nickname || undefined,
+      city: cityStr
     })
     ElMessage.success('注册成功，请登录')
     router.push('/login')

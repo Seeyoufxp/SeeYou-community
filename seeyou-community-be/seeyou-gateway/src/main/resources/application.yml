@@ -9,13 +9,10 @@ spring:
 
   cloud:
     gateway:
-      # 网关转发 multipart 时，整个 body 缓存到磁盘（超出 256KB 走磁盘），
+      # 网关转发 multipart 时，整个 body 缓存到磁盘（超出 max-in-memory-size 走磁盘），
       # 限制放宽到 6MB 以支持头像上传
       codec:
         max-in-memory-size: 6MB
-
-  cloud:
-    gateway:
       discovery:
         locator:
           enabled: true
