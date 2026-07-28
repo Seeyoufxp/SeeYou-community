@@ -12,12 +12,14 @@ import com.seeyou.common.result.PageResult;
 import com.seeyou.common.result.ResultCode;
 import com.seeyou.common.utils.RedisUtils;
 import com.seeyou.content.client.UserBriefLoader;
+import com.seeyou.content.mapper.IContentCommentMapper;
 import com.seeyou.content.mapper.IContentDetailMapper;
 import com.seeyou.content.mapper.IContentPostMapper;
 import com.seeyou.content.pojo.dto.PostPublishDTO;
 import com.seeyou.content.pojo.dto.PostQueryDTO;
 import com.seeyou.content.pojo.dto.PostUpdateDTO;
 import com.seeyou.content.pojo.dto.UserBriefDTO;
+import com.seeyou.content.pojo.entity.ContentComment;
 import com.seeyou.content.pojo.entity.ContentDetail;
 import com.seeyou.content.pojo.entity.ContentPost;
 import com.seeyou.content.pojo.enums.ContentType;
@@ -57,6 +59,7 @@ public class ContentPostServiceImpl implements IContentPostService {
 
     private final IContentPostMapper contentPostMapper;
     private final IContentDetailMapper contentDetailMapper;
+    private final IContentCommentMapper contentCommentMapper;
     private final RedisUtils redisUtils;
     private final RocketMQTemplate rocketMQTemplate;
     private final UserBriefLoader userBriefLoader;
@@ -277,7 +280,12 @@ public class ContentPostServiceImpl implements IContentPostService {
         vo.setSummary(post.getSummary());
         ContentDetail detail = contentDetailMapper.selectById(id);
         // ES text 字段无强制长度限制，但截断保护：避免极端长文撑爆单条文档
-        vo.setContent(stripAndTruncate(detail == null ? "" : detail.getContent(), 8000));
+        String content = stripAndTruncate(detail == null ? "" : detail.getContent(), 8000);
+        // 问答(type=3)把所有一级回答(parent_id=0)拼到正文末尾，让 ES/向量库能搜到答的内容
+        if (post.getType() != null && post.getType() == ContentType.QA.getCode()) {
+            content = appendAnswers(content, id);
+        }
+        vo.setContent(content);
         vo.setUserId(post.getUserId());
         vo.setLikeCount(post.getLikeCount());
         vo.setCommentCount(post.getCommentCount());
@@ -316,6 +324,14 @@ public class ContentPostServiceImpl implements IContentPostService {
         Map<Long, String> contentMap = contentDetailMapper.selectBatchIds(postIds).stream()
                 .collect(Collectors.toMap(ContentDetail::getPostId, ContentDetail::getContent, (a, b) -> a));
 
+        // 批量取问答的回答：只拉 type=3 的一级回答(parent_id=0)，按 postId 分组
+        // 让向量库能检索到"答"的内容，不只是"问"
+        Set<Long> qaPostIds = posts.stream()
+                .filter(p -> p.getType() != null && p.getType() == ContentType.QA.getCode())
+                .map(ContentPost::getId)
+                .collect(Collectors.toSet());
+        Map<Long, List<String>> answerMap = loadAnswersByPostIds(qaPostIds);
+
         List<KnowledgeDocVO> records = posts.stream().map(p -> {
             KnowledgeDocVO vo = new KnowledgeDocVO();
             vo.setId(p.getId());
@@ -323,12 +339,62 @@ public class ContentPostServiceImpl implements IContentPostService {
             vo.setTitle(p.getTitle());
             vo.setSummary(p.getSummary());
             // 向量库正文截断到 4000 字，控制 embedding 成本
-            vo.setContent(stripAndTruncate(contentMap.getOrDefault(p.getId(), ""), 4000));
+            String content = stripAndTruncate(contentMap.getOrDefault(p.getId(), ""), 4000);
+            // 问答拼上回答
+            if (p.getType() != null && p.getType() == ContentType.QA.getCode()) {
+                content = appendAnswers(content, answerMap.get(p.getId()));
+            }
+            vo.setContent(content);
             vo.setCreateTime(p.getCreateTime());
             return vo;
         }).collect(Collectors.toList());
 
         return new PageResult<>(records, page.getTotal(), page.getCurrent(), page.getSize());
+    }
+
+    /**
+     * 批量加载多个问答的一级回答（parent_id=0），按 postId 分组。
+     * 问答无楼中楼，所有回答都是 parentId=0。
+     */
+    private Map<Long, List<String>> loadAnswersByPostIds(Set<Long> qaPostIds) {
+        if (qaPostIds == null || qaPostIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        LambdaQueryWrapper<ContentComment> cw = Wrappers.<ContentComment>lambdaQuery()
+                .in(ContentComment::getPostId, qaPostIds)
+                .eq(ContentComment::getParentId, 0L)
+                .orderByAsc(ContentComment::getCreateTime);
+        return contentCommentMapper.selectList(cw).stream()
+                .collect(Collectors.groupingBy(
+                        ContentComment::getPostId,
+                        Collectors.mapping(ContentComment::getContent, Collectors.toList())
+                ));
+    }
+
+    /**
+     * 把回答列表拼到正文末尾。每条回答前加"回答："前缀让模型识别。
+     */
+    private String appendAnswers(String content, Long postId) {
+        return appendAnswers(content, loadAnswersByPostIds(Set.of(postId)).get(postId));
+    }
+
+    private String appendAnswers(String content, List<String> answers) {
+        if (answers == null || answers.isEmpty()) {
+            return content;
+        }
+        StringBuilder sb = new StringBuilder(content == null ? "" : content);
+        for (String a : answers) {
+            if (a == null || a.isBlank()) continue;
+            sb.append("\n\n回答：").append(stripHtml(a));
+        }
+        // 拼完回答后再截一次，避免超过 embedding 限制
+        return sb.length() > 8000 ? sb.substring(0, 8000) : sb.toString();
+    }
+
+    /** 简单去 HTML 标签（回答里可能含富文本） */
+    private String stripHtml(String html) {
+        if (html == null) return "";
+        return html.replaceAll("<[^>]+>", "").replaceAll("&nbsp;", " ").trim();
     }
 
     // tools
