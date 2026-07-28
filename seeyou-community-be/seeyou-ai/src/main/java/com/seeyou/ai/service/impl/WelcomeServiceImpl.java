@@ -47,7 +47,9 @@ public class WelcomeServiceImpl implements WelcomeService {
             "getCurrentWeather 会返回 null，此时请勿提及任何天气、气温、地区相关内容，只根据注册天数生成通用欢迎语。**" +
             "**绝对不要 fallback 到某个默认城市（如\"北京\"），用户没填就是没填。**" +
             "不要提及具体时间（如\"现在是几点\"）。" +
-            "若函数返回 null（未登录或获取失败），则生成通用欢迎语，不要提及具体天数或天气。";
+            "若函数返回 null（未登录或获取失败），则生成通用欢迎语，不要提及具体天数或天气。" +
+            "输出格式要求：只输出一句话，不要换行；" +
+            "全篇最多使用一个 emoji 表情（也可以不用），若使用则放在句尾。";
 
     @Override
     public WelcomeVO getWelcome() {

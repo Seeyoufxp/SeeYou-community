@@ -1,8 +1,9 @@
 <template>
   <div class="sy-container content-list">
     <div class="list-main">
-      <div class="toolbar sy-card">
-        <div class="tabs">
+      <SloganBanner v-if="isPost" />
+      <div class="toolbar sy-card" :class="{ 'qa-toolbar': isQa }">
+        <div v-if="!isQa" class="tabs">
           <span
             v-for="s in sortOptions"
             :key="s.value"
@@ -16,9 +17,9 @@
         <div class="toolbar-right">
           <el-input
             v-model="query.keyword"
-            placeholder="搜索标题/摘要"
+            :placeholder="isQa ? '搜索问答' : '搜索标题/摘要'"
             clearable
-            style="width: 200px"
+            :style="{ width: isQa ? '260px' : '200px' }"
             @keyup.enter="search"
             @clear="search"
           >
@@ -31,17 +32,25 @@
       </div>
 
       <div v-loading="loading" class="items">
-        <div v-for="item in list" :key="item.id" class="item sy-card" @click="goDetail(item.id)">
-          <el-avatar :size="44" :src="item.avatarUrl || defaultAvatar(item.nickname)" />
+        <div
+          v-for="item in list"
+          :key="item.id"
+          class="item sy-card"
+          :class="{ 'qa-item': isQa }"
+          @click="goDetail(item.id)"
+        >
+          <el-avatar :size="isQa ? 36 : 44" :src="item.avatarUrl || defaultAvatar(item.nickname)" />
           <div class="item-body">
             <div class="item-title ellipsis-1">{{ item.title }}</div>
-            <div v-if="item.summary" class="item-summary ellipsis-2">{{ item.summary }}</div>
-            <div class="item-meta">
-              <span class="author">{{ item.nickname }}</span>
-              <span>{{ fromNow(item.createTime) }}</span>
-            </div>
+            <template v-if="!isQa">
+              <div v-if="item.summary" class="item-summary ellipsis-2">{{ item.summary }}</div>
+              <div class="item-meta">
+                <span class="author">{{ item.nickname }}</span>
+                <span>{{ fromNow(item.createTime) }}</span>
+              </div>
+            </template>
           </div>
-          <div class="item-stats">
+          <div v-if="!isQa" class="item-stats">
             <span class="stat" :class="{ liked: item.liked }">
               <el-icon><Pointer /></el-icon>{{ item.likeCount }}
             </span>
@@ -72,6 +81,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { getContentList } from '@/api/content'
 import { fromNow, defaultAvatar } from '@/utils/format'
 import { useUserStore } from '@/stores/user'
+import SloganBanner from '@/components/SloganBanner.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -81,6 +91,8 @@ const userStore = useUserStore()
 const res = computed(() => route.meta.res)
 const typeName = computed(() => ({ post: '帖子', blog: '博客', qa: '问答' }[res.value]))
 const publishText = computed(() => ({ post: '发帖子', blog: '写博客', qa: '提问题' }[res.value]))
+const isPost = computed(() => res.value === 'post')
+const isQa = computed(() => res.value === 'qa')
 
 const sortOptions = [
   { label: '最新', value: 'create_time' },
@@ -164,6 +176,11 @@ watch(() => route.meta.res, () => {
   display: flex;
   gap: 12px;
 }
+/* 问答广场：无排序 tabs，搜索在左、提问题在右 */
+.qa-toolbar .toolbar-right {
+  flex: 1;
+  justify-content: space-between;
+}
 
 .items {
   margin-top: 16px;
@@ -179,6 +196,11 @@ watch(() => route.meta.res, () => {
 }
 .item:hover {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+/* 问答条目：仅头像 + 标题，垂直居中 */
+.qa-item {
+  align-items: center;
+  padding: 14px 20px;
 }
 .item-body {
   flex: 1;

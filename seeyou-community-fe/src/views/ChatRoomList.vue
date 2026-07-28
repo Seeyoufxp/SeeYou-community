@@ -1,5 +1,6 @@
 <template>
   <div class="sy-container chat-list-page">
+    <SloganBanner />
     <div class="page-head">
       <h2>聊天室</h2>
       <el-button
@@ -64,6 +65,7 @@ import { useRouter } from 'vue-router'
 import { getRoomList, createRoom } from '@/api/chat'
 import { formatDateTime, defaultAvatar } from '@/utils/format'
 import { useUserStore } from '@/stores/user'
+import SloganBanner from '@/components/SloganBanner.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
