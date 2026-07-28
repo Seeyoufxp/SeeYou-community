@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  * - 从 24h 缓存/接口拿 hourly[24] → pickCurrentHour 找当前小时（找不到取第一条兜底）→ 当前温度/天气
  * - aggregateTodayMaxMin 聚合今天日期的小时 → 当天最高/最低温（今天小时不足 3 条时退化为 24h 全部 max/min）
  *
- * 响应是 gzip 压缩，RestClient 默认自动解压。任意异常 try-catch 降级返回 null，不抛异常。
+ * 响应是 gzip 压缩，使用注入的 RestClient.Builder（Spring Boot 自动配置）自动解压。任意异常 try-catch 降级返回 null，不抛异常。
  */
 @Slf4j
 @Service
@@ -39,6 +39,7 @@ public class QWeatherServiceImpl implements QWeatherService {
     private final QWeatherProperties properties;
     private final RedisUtils redisUtils;
     private final ObjectMapper objectMapper;
+    private final RestClient.Builder restClientBuilder;
 
     /** 默认城市（北京）locationId，用户城市为空或查找失败时兜底 */
     private static final String DEFAULT_LOCATION_ID = "101010100";
@@ -229,6 +230,7 @@ public class QWeatherServiceImpl implements QWeatherService {
     }
 
     private RestClient restClient() {
-        return RestClient.builder().baseUrl(properties.getHost()).build();
+        // 使用 Spring Boot 自动配置的 RestClient.Builder，支持 gzip 自动解压
+        return restClientBuilder.baseUrl(properties.getHost()).build();
     }
 }

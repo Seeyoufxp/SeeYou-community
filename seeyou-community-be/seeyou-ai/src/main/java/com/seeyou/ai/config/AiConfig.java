@@ -13,6 +13,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import redis.clients.jedis.JedisPooled;
+import okhttp3.OkHttpClient;
+import org.springframework.boot.web.client.RestClientCustomizer;
+import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * AI 模块配置
@@ -68,5 +73,27 @@ public class AiConfig {
         log.info("手动配置 RedisVectorStore: index={}, prefix={}, initializeSchema={}",
                 properties.getIndex(), properties.getPrefix(), properties.isInitializeSchema());
         return new RedisVectorStore(config, embeddingModel, jedisPooled, properties.isInitializeSchema());
+    }
+
+    /**
+     * 自定义 OkHttp 客户端，增加 read timeout
+     * 默认 OkHttp read timeout 10s，灵积 qwen3.7-plus + function calling 响应经常超 10s，这里设 120s
+     */
+    @Bean
+    public OkHttpClient okHttpClient() {
+        return new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(120, TimeUnit.SECONDS)
+                .build();
+    }
+
+    /**
+     * 强制所有 RestClient.Builder 用上面的 OkHttpClient（包括 Spring AI 的 OpenAiApi）
+     * Spring Boot 默认自动配的 OkHttp3ClientHttpRequestFactory 用默认 OkHttpClient（10s read timeout），
+     * 灵积 qwen3.7-plus + function calling 常超 10s，这里用 customizer 覆盖为 120s
+     */
+    @Bean
+    public RestClientCustomizer restClientCustomizer(OkHttpClient okHttpClient) {
+        return builder -> builder.requestFactory(new OkHttp3ClientHttpRequestFactory(okHttpClient));
     }
 }

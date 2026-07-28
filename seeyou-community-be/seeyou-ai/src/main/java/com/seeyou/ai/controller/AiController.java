@@ -20,12 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * AI 微服务对外接口
- * - GET  /api/ai/welcome           欢迎语（网关白名单已放开，未登录可访问）
- * - POST /api/ai/assistant         AI开发助手 RAG 问答（需登录）
- * - POST /api/ai/knowledge/rebuild 重建向量知识库（需管理员）
- */
 @Tag(name = "AI服务")
 @RestController
 @RequestMapping("/api/ai")

@@ -31,6 +31,11 @@ public class AuthProperties {
             "/api/qa/*",
             // 评论列表对未登录开放
             "/api/comment/list",
+            // 聊天室列表/详情对未登录开放（单层通配，不含 /online 等子操作）
+            "/api/chat/room/list",
+            "/api/chat/room/*",
+            // WebSocket 握手路径由 chat 服务自行鉴权（query 传 token）
+            "/api/chat/ws/**",
             "/api/ai/welcome",
             "/doc.html",
             "/v3/api-docs/**",
