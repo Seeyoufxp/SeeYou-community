@@ -18,6 +18,8 @@ export default defineConfig({
     }
   },
   build: {
+    // 环境 safe-delete shim 拦截 fs.rmSync 导致 emptyOutDir 报错，构建前手动清 dist 即可
+    emptyOutDir: false,
     rollupOptions: {
       output: {
         // 手动分包：按实际引用（tree-shaking 后）把第三方库拆出主 chunk。

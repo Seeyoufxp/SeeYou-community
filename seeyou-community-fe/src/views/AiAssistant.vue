@@ -23,10 +23,7 @@
         <div v-if="!sessions.length" class="empty">
           <el-icon :size="48" color="#f9b3b7"><MagicStick /></el-icon>
           <p>你好，我是之友 AI 开发助手</p>
-          <p class="empty-sub">可以从下面的示例开始，或直接输入你的问题</p>
-          <div class="examples">
-            <div v-for="e in examples" :key="e" class="example" @click="ask(e)">{{ e }}</div>
-          </div>
+          <p class="empty-sub">直接输入你的问题开始对话</p>
         </div>
 
         <template v-for="(s, i) in sessions" :key="i">
@@ -102,12 +99,6 @@ const question = ref('')
 const sessions = ref([])
 const asking = ref(false)
 const rebuilding = ref(false)
-
-const examples = [
-  '如何在 Spring Boot 里整合 RocketMQ？',
-  '社区里有哪些关于微服务的最佳实践？',
-  '帮我总结一下社区中关于 Redis 的讨论'
-]
 
 async function ask(q) {
   const text = (q || '').trim()
@@ -214,26 +205,6 @@ onMounted(() => {
   font-size: 13px;
   color: var(--sy-text-secondary);
   margin-top: 6px;
-}
-.examples {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  margin-top: 24px;
-}
-.example {
-  background: #fff;
-  border: 1px solid var(--sy-border);
-  border-radius: 16px;
-  padding: 8px 20px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.example:hover {
-  border-color: var(--sy-primary);
-  color: var(--sy-primary);
 }
 
 .row {

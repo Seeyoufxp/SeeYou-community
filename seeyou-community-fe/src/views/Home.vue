@@ -6,11 +6,9 @@
       <div class="hero-glow hero-glow-a" />
       <div class="hero-glow hero-glow-b" />
       <div class="sy-container">
-        <p class="hero-eyebrow">SEEYOU · 开发者社区</p>
         <h1 class="hero-title">
           {{ welcome || 'Hi，欢迎来到之友开发者社区' }}
         </h1>
-        <p class="hero-sub">分享、交流、成长 —— 和热爱技术的伙伴一起进步</p>
 
         <div class="hero-box sy-card">
           <div class="hero-tabs">
@@ -326,6 +324,9 @@ onMounted(async () => {
   margin-top: 24px;
 }
 .quick-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 16px;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -333,6 +334,20 @@ onMounted(async () => {
 .quick-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+.quick-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+.quick-info {
+  flex: 1;
+  min-width: 0;
 }
 .quick-title {
   font-size: 15px;

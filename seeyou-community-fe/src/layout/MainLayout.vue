@@ -3,7 +3,7 @@
     <header class="header">
       <div class="header-inner sy-container">
         <div class="logo" @click="$router.push('/')">
-          <span class="logo-badge">ZY</span>
+          <span class="logo-badge">SeeYou</span>
           <span class="logo-text">之友<em>开发者社区</em></span>
         </div>
 
@@ -151,17 +151,17 @@ const onUserCommand = async (cmd) => {
   flex-shrink: 0;
 }
 .logo-badge {
-  width: 34px;
   height: 34px;
+  padding: 0 10px;
   border-radius: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--sy-primary-grad);
   color: #fff;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   box-shadow: 0 4px 12px rgba(230, 0, 18, 0.3);
 }
 .logo-text {
