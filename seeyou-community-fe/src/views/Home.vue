@@ -2,10 +2,15 @@
   <div class="home">
     <!-- 欢迎区 + AI 助手 -->
     <section class="hero">
+      <!-- 装饰光斑 -->
+      <div class="hero-glow hero-glow-a" />
+      <div class="hero-glow hero-glow-b" />
       <div class="sy-container">
+        <p class="hero-eyebrow">SEEYOU · 开发者社区</p>
         <h1 class="hero-title">
           {{ welcome || 'Hi，欢迎来到之友开发者社区' }}
         </h1>
+        <p class="hero-sub">分享、交流、成长 —— 和热爱技术的伙伴一起进步</p>
 
         <div class="hero-box sy-card">
           <div class="hero-tabs">
@@ -59,11 +64,13 @@
         <!-- 快捷入口 -->
         <div class="quick-grid">
           <div v-for="q in quickEntries" :key="q.title" class="quick-card sy-card" @click="quickGo(q)">
-            <div class="quick-title">
+            <div class="quick-icon" :style="{ background: q.bg }">
               <el-icon :color="q.color"><component :is="q.icon" /></el-icon>
-              {{ q.title }}
             </div>
-            <div class="quick-desc">{{ q.desc }}</div>
+            <div class="quick-info">
+              <div class="quick-title">{{ q.title }}</div>
+              <div class="quick-desc">{{ q.desc }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -188,11 +195,11 @@ const askAi = () => {
 
 // 快捷入口
 const quickEntries = [
-  { title: '发帖子', desc: '分享动态与技术日常', icon: 'ChatDotRound', color: '#e60012', path: '/post/publish' },
-  { title: '写博客', desc: '沉淀体系化技术文章', icon: 'EditPen', color: '#168cff', path: '/blog/publish' },
-  { title: '提问题', desc: '向社区开发者求助', icon: 'QuestionFilled', color: '#00b42a', path: '/qa/publish' },
-  { title: '聊天室', desc: '实时交流在线畅聊', icon: 'ChatLineRound', color: '#ff7d00', path: '/chat' },
-  { title: 'AI 助手', desc: '社区知识库智能问答', icon: 'MagicStick', color: '#722ed1', path: '/assistant' }
+  { title: '发帖子', desc: '分享动态与技术日常', icon: 'ChatDotRound', color: '#e60012', bg: 'rgba(230,0,18,0.10)', path: '/post/publish' },
+  { title: '写博客', desc: '沉淀体系化技术文章', icon: 'EditPen', color: '#168cff', bg: 'rgba(22,140,255,0.10)', path: '/blog/publish' },
+  { title: '提问题', desc: '向社区开发者求助', icon: 'QuestionFilled', color: '#00b42a', bg: 'rgba(0,180,42,0.10)', path: '/qa/publish' },
+  { title: '聊天室', desc: '实时交流在线畅聊', icon: 'ChatLineRound', color: '#ff7d00', bg: 'rgba(255,125,0,0.10)', path: '/chat' },
+  { title: 'AI 助手', desc: '社区知识库智能问答', icon: 'MagicStick', color: '#722ed1', bg: 'rgba(114,46,209,0.10)', path: '/assistant' }
 ]
 const quickGo = (q) => {
   if (q.path.endsWith('/publish') && !userStore.isLogin) {
@@ -275,7 +282,6 @@ onMounted(async () => {
   font-size: 28px;
   font-weight: 700;
 }
-
 .hero-box {
   max-width: 820px;
   margin: 24px auto 0;
@@ -380,14 +386,19 @@ onMounted(async () => {
 
 .latest-list {
   margin-top: 10px;
-  min-height: 180px;
+  min-height: 130px;
 }
 .latest-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 0;
+  padding: 9px 6px;
+  border-radius: 8px;
   cursor: pointer;
+  transition: background 0.2s;
+}
+.latest-item:hover {
+  background: #fafafa;
 }
 .latest-item:hover .latest-title {
   color: var(--sy-primary);

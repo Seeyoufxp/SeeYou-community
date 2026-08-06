@@ -45,8 +45,8 @@
             <template v-if="!isQa">
               <div v-if="item.summary" class="item-summary ellipsis-2">{{ item.summary }}</div>
               <div class="item-meta">
-                <span class="author">{{ item.nickname }}</span>
-                <span>{{ fromNow(item.createTime) }}</span>
+                <span class="author"><el-icon><User /></el-icon>{{ item.nickname }}</span>
+                <span><el-icon><Clock /></el-icon>{{ fromNow(item.createTime) }}</span>
               </div>
             </template>
           </div>
@@ -192,10 +192,13 @@ watch(() => route.meta.res, () => {
   padding: 18px 20px;
   margin-bottom: 12px;
   cursor: pointer;
-  transition: box-shadow 0.2s;
+  border-left: 3px solid transparent;
+  transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
 }
 .item:hover {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  border-left-color: var(--sy-primary);
+  box-shadow: var(--sy-shadow-md);
 }
 /* 问答条目：仅头像 + 标题，垂直居中 */
 .qa-item {
@@ -209,6 +212,10 @@ watch(() => route.meta.res, () => {
 .item-title {
   font-size: 16px;
   font-weight: 600;
+  transition: color 0.2s;
+}
+.item:hover .item-title {
+  color: var(--sy-primary);
 }
 .item-summary {
   font-size: 13px;
@@ -218,10 +225,15 @@ watch(() => route.meta.res, () => {
 }
 .item-meta {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   font-size: 12px;
   color: var(--sy-text-secondary);
   margin-top: 8px;
+}
+.item-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 .author {
   color: var(--sy-text-regular);

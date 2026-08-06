@@ -3,15 +3,15 @@
     <header class="header">
       <div class="header-inner sy-container">
         <div class="logo" @click="$router.push('/')">
-          <span class="logo-mark">之友</span>
-          <span class="logo-text">开发者社区</span>
+          <span class="logo-badge">ZY</span>
+          <span class="logo-text">之友<em>开发者社区</em></span>
         </div>
 
         <nav class="nav">
           <router-link class="nav-item" to="/" exact-active-class="active">首页</router-link>
           <el-dropdown trigger="hover" @command="go">
             <span class="nav-item el-dropdown-link" :class="{ active: isCircle }">
-              社区圈子<el-icon><ArrowDown /></el-icon>
+              社区圈子<el-icon class="nav-arrow"><ArrowDown /></el-icon>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
@@ -22,7 +22,7 @@
           </el-dropdown>
           <el-dropdown trigger="hover" @command="go">
             <span class="nav-item el-dropdown-link" :class="{ active: isKnowledge }">
-              知识中心<el-icon><ArrowDown /></el-icon>
+              知识中心<el-icon class="nav-arrow"><ArrowDown /></el-icon>
             </span>
             <template #dropdown>
               <el-dropdown-menu>
@@ -38,7 +38,7 @@
           <el-input
             v-model="keyword"
             class="search-input"
-            placeholder="输入关键词搜索"
+            placeholder="搜索帖子 / 博客 / 问答"
             clearable
             @keyup.enter="doSearch"
           >
@@ -128,8 +128,10 @@ const onUserCommand = async (cmd) => {
 }
 
 .header {
-  background: #fff;
-  border-bottom: 1px solid var(--sy-border);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--sy-border-light);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -143,19 +145,37 @@ const onUserCommand = async (cmd) => {
 
 .logo {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  align-items: center;
+  gap: 10px;
   cursor: pointer;
   flex-shrink: 0;
 }
-.logo-mark {
-  font-size: 22px;
+.logo-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sy-primary-grad);
+  color: #fff;
+  font-size: 14px;
   font-weight: 800;
-  color: var(--sy-primary);
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.3);
 }
 .logo-text {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.logo-text em {
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sy-text-secondary);
 }
 
 .nav {
@@ -174,14 +194,21 @@ const onUserCommand = async (cmd) => {
   color: var(--sy-text-main);
   cursor: pointer;
   border-bottom: 2px solid transparent;
+  transition: color 0.2s;
 }
-.nav-item:hover,
-.nav-item.active {
+.nav-item:hover {
   color: var(--sy-primary);
 }
 .nav-item.active {
+  color: var(--sy-primary);
   border-bottom-color: var(--sy-primary);
   font-weight: 600;
+}
+.nav-arrow {
+  transition: transform 0.2s;
+}
+.el-dropdown-link:hover .nav-arrow {
+  transform: rotate(180deg);
 }
 .el-dropdown-link {
   outline: none;
@@ -198,6 +225,14 @@ const onUserCommand = async (cmd) => {
 }
 .search-input :deep(.el-input__wrapper) {
   border-radius: 16px;
+  background: #f2f3f5;
+  box-shadow: none;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.search-input :deep(.el-input__wrapper:hover),
+.search-input :deep(.el-input__wrapper.is-focus) {
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--sy-primary-light) inset;
 }
 
 .user-entry {

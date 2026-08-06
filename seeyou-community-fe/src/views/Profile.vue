@@ -231,20 +231,22 @@ onMounted(async () => {
   padding-top: 24px;
 }
 .profile-card {
-  padding: 28px;
+  padding: 32px;
+  border-radius: var(--sy-radius-lg);
+  box-shadow: var(--sy-shadow-md);
 }
 .profile-head {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
 }
 .head-info {
   flex: 1;
   min-width: 0;
 }
 .head-name {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 800;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -252,28 +254,38 @@ onMounted(async () => {
 .head-sub {
   color: var(--sy-text-secondary);
   font-size: 13px;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 .head-bio {
   color: var(--sy-text-regular);
   font-size: 14px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 .profile-desc {
-  margin-top: 24px;
+  margin-top: 28px;
+}
+.profile-desc :deep(.el-descriptions__body) {
+  background: #fff;
 }
 
 .my-content {
   margin-top: 20px;
   padding: 8px 28px 24px;
+  border-radius: var(--sy-radius-lg);
+  box-shadow: var(--sy-shadow-sm);
 }
 .mine-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--sy-border);
+  padding: 14px 6px;
+  border-radius: 8px;
+  border-bottom: 1px solid var(--sy-border-light);
   cursor: pointer;
+  transition: background 0.2s;
+}
+.mine-item:hover {
+  background: #fafafa;
 }
 .mine-item:hover .mine-title {
   color: var(--sy-primary);

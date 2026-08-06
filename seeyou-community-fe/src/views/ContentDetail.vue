@@ -136,21 +136,23 @@ watch(() => route.fullPath, load, { immediate: true })
   margin: 0 auto;
 }
 .detail-card {
-  padding: 28px 36px;
+  padding: 32px 40px;
   min-height: 240px;
+  border-radius: var(--sy-radius-lg);
+  box-shadow: var(--sy-shadow-md);
 }
 .title {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
   line-height: 1.4;
 }
 .meta {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--sy-border);
+  margin-top: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--sy-border-light);
 }
 .meta-info {
   flex: 1;
@@ -169,15 +171,15 @@ watch(() => route.fullPath, load, { immediate: true })
   gap: 8px;
 }
 .content {
-  margin-top: 20px;
+  margin-top: 24px;
   font-size: 15px;
   min-height: 120px;
 }
 .like-bar {
   display: flex;
   justify-content: center;
-  margin-top: 28px;
+  margin-top: 32px;
   padding-top: 20px;
-  border-top: 1px solid var(--sy-border);
+  border-top: 1px solid var(--sy-border-light);
 }
 </style>

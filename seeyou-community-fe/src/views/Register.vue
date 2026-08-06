@@ -1,11 +1,14 @@
 <template>
   <div class="auth-page">
+    <div class="auth-glow auth-glow-a" />
+    <div class="auth-glow auth-glow-b" />
     <div class="auth-card sy-card">
       <div class="auth-logo">
-        <span class="logo-mark">之友</span>
-        <span class="logo-text">开发者社区</span>
+        <span class="logo-badge">ZY</span>
+        <span class="logo-text">之友<em>开发者社区</em></span>
       </div>
       <h2 class="auth-title">创建账号</h2>
+      <p class="auth-sub">加入之友，开启你的开发者之旅</p>
 
       <el-form ref="formRef" :model="form" :rules="rules" size="large" @keyup.enter="submit">
         <el-form-item prop="username">
@@ -113,33 +116,85 @@ async function submit() {
 <style scoped>
 .auth-page {
   min-height: 100vh;
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #fff5f5 0%, #f6f7ff 50%, #eef4ff 100%);
 }
+.auth-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.auth-glow-a {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(230, 0, 18, 0.22), transparent 70%);
+  top: -100px;
+  left: -80px;
+}
+.auth-glow-b {
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, rgba(22, 140, 255, 0.2), transparent 70%);
+  bottom: -140px;
+  right: -80px;
+}
 .auth-card {
   width: 400px;
   padding: 40px 36px;
+  border-radius: var(--sy-radius-lg);
+  box-shadow: var(--sy-shadow-lg);
+  position: relative;
 }
 .auth-logo {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
-.logo-mark {
-  font-size: 26px;
+.logo-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sy-primary-grad);
+  color: #fff;
+  font-size: 15px;
   font-weight: 800;
-  color: var(--sy-primary);
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(230, 0, 18, 0.3);
 }
 .logo-text {
-  font-size: 18px;
-  font-weight: 600;
-  margin-left: 6px;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.logo-text em {
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sy-text-secondary);
 }
 .auth-title {
   text-align: center;
-  font-size: 18px;
-  font-weight: 600;
-  margin: 12px 0 24px;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 18px 0 2px;
+}
+.auth-sub {
+  text-align: center;
+  font-size: 13px;
+  color: var(--sy-text-secondary);
+  margin-bottom: 22px;
 }
 .auth-btn {
   width: 100%;

@@ -3,8 +3,9 @@ spring:
     name: seeyou-ai
   config:
     import:
-      - optional:file:./config/application-secret.yml
-      - optional:file:../config/application-secret.yml
+      - optional:file:/app/config/application-secret.yml
+
+
   cloud:
     nacos:
       discovery:

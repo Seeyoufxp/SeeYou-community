@@ -1,1 +1,0 @@
-import{_ as a}from"./_plugin-vue_export-helper-2Oq3uZ77.js";import{o as e,c as o,a0 as s}from"./vue-vendor-xHBYtPnM.js";const n={class:"slogan sy-card"},r={__name:"SloganBanner",props:{text:{type:String,default:"海内存知己，天涯若比邻"}},setup(t){return(c,_)=>(e(),o("div",n,s(t.text),1))}},i=a(r,[["__scopeId","data-v-8f99c743"]]);export{i as S};
