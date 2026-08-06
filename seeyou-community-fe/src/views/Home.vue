@@ -5,7 +5,6 @@
       <div class="sy-container">
         <h1 class="hero-title">
           {{ welcome || 'Hi，欢迎来到之友开发者社区' }}
-          <el-icon v-if="welcome" class="hero-badge"><Sunny /></el-icon>
         </h1>
 
         <div class="hero-box sy-card">
@@ -275,10 +274,6 @@ onMounted(async () => {
   text-align: center;
   font-size: 28px;
   font-weight: 700;
-}
-.hero-badge {
-  color: #ffab00;
-  vertical-align: middle;
 }
 
 .hero-box {

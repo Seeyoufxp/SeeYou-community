@@ -48,6 +48,11 @@ request.interceptors.response.use(
     return Promise.reject(res)
   },
   (error) => {
+    const config = error.config || {}
+    // 业务方显式标记 silent：非关键路径，错误不弹给用户（仍 reject 让业务 catch 自行处理）
+    if (config.silent) {
+      return Promise.reject(error)
+    }
     const status = error.response?.status
     const res = error.response?.data
     if (status === 401 || res?.code === 401) {

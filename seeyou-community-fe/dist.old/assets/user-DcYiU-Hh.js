@@ -1,0 +1,1 @@
+import{r as o}from"./_plugin-vue_export-helper-CYtrIr8f.js";const a=s=>o.post("/api/user/login",s),r=s=>o.post("/api/user/register",s),p=()=>o.post("/api/user/logout"),i=()=>o.get("/api/user/info"),n=s=>o.post("/api/user/edit",s),u=s=>{const e=new FormData;return e.append("file",s),o.post("/api/user/upload/image",e)};export{a,n as e,i as g,p as l,r,u};
