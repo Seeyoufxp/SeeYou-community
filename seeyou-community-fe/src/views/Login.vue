@@ -4,7 +4,7 @@
     <div class="auth-glow auth-glow-b" />
     <div class="auth-card sy-card">
       <div class="auth-logo">
-        <span class="logo-badge">ZY</span>
+        <span class="logo-badge">SeeYou</span>
         <span class="logo-text">之友<em>开发者社区</em></span>
       </div>
       <h2 class="auth-title">欢迎回来</h2>
@@ -110,17 +110,17 @@ async function submit() {
   gap: 10px;
 }
 .logo-badge {
-  width: 38px;
   height: 38px;
+  padding: 0 11px;
   border-radius: 11px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--sy-primary-grad);
   color: #fff;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   box-shadow: 0 4px 12px rgba(230, 0, 18, 0.3);
 }
 .logo-text {
